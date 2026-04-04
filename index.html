@@ -31,7 +31,6 @@ body {
   color: white;
   transition: 0.3s;
   padding: 20px;
-  z-index: 999;
 }
 
 #sidebar.active {
@@ -64,16 +63,6 @@ body {
   padding: 80px 20px;
 }
 
-.screen {
-  display: none;
-}
-
-.screen.active {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 15px;
-}
-
 .card {
   height: 120px;
   background: #ddd;
@@ -83,8 +72,8 @@ body {
   justify-content: center;
 }
 
-/* 🔥 BARRA DE BAIXO (COMEÇA INVISÍVEL TOTAL) */
-#bottomPanel {
+/* BARRA (QUANDO EXISTIR) */
+.bottomPanel {
   position: fixed;
   left: 0;
   right: 0;
@@ -93,22 +82,15 @@ body {
   background: #222;
   color: white;
   padding: 20px;
-  display: none; /* ESSENCIAL */
-  flex-direction: row;
-  gap: 10px;
-  z-index: 998;
-}
-
-#bottomPanel.active {
   display: flex;
+  gap: 10px;
+  z-index: 999;
 }
 
-/* ITENS */
 .bottom-item {
   background: #444;
   padding: 10px;
   border-radius: 8px;
-  cursor: grab;
 }
 </style>
 </head>
@@ -119,56 +101,56 @@ body {
 
 <div id="sidebar">
   <div id="closeBtn">✖</div>
-
   <h3>RESP</h3>
-
-  <div id="modulesList">
-    <div class="bottom-item">Início</div>
-  </div>
 
   <div id="openModules">☰☰</div>
 </div>
 
 <div id="main">
-  <div id="home" class="screen active">
-    <div class="card">Produto</div>
-    <div class="card">Vídeo</div>
-    <div class="card">Post</div>
-  </div>
-</div>
-
-<div id="bottomPanel">
-  <div class="bottom-item" draggable="true">Vídeos</div>
-  <div class="bottom-item" draggable="true">Chat</div>
-  <div class="bottom-item" draggable="true">Feed</div>
+  <div class="card">Produto</div>
 </div>
 
 <script>
 const sidebar = document.getElementById("sidebar");
-const panel = document.getElementById("bottomPanel");
+let panel = null; // NÃO EXISTE no começo
 
-// ABRIR SIDEBAR
 menuBtn.onclick = () => {
   sidebar.classList.toggle("active");
 
-  // se fechar sidebar, esconde tudo
+  // FECHOU SIDEBAR → REMOVE A BARRA
   if (!sidebar.classList.contains("active")) {
-    panel.classList.remove("active");
-    panel.style.display = "none";
+    if (panel) {
+      panel.remove();
+      panel = null;
+    }
   }
 };
 
-// FECHAR
 closeBtn.onclick = () => {
   sidebar.classList.remove("active");
-  panel.classList.remove("active");
-  panel.style.display = "none";
+
+  if (panel) {
+    panel.remove();
+    panel = null;
+  }
 };
 
-// ABRIR ABA DE BAIXO
+// CRIAR BARRA DO ZERO
 openModules.onclick = () => {
-  panel.style.display = "flex"; // aparece
-  panel.classList.toggle("active");
+
+  // evita duplicar
+  if (panel) return;
+
+  panel = document.createElement("div");
+  panel.className = "bottomPanel";
+
+  panel.innerHTML = `
+    <div class="bottom-item">Vídeos</div>
+    <div class="bottom-item">Chat</div>
+    <div class="bottom-item">Feed</div>
+  `;
+
+  document.body.appendChild(panel);
 };
 </script>
 
