@@ -31,6 +31,7 @@ body {
   color: white;
   transition: 0.3s;
   padding: 20px;
+  z-index: 999;
 }
 
 #sidebar.active {
@@ -44,7 +45,7 @@ body {
   cursor: pointer;
 }
 
-/* BOTÃO ☰☰ (SÓ EXISTE COM SIDEBAR ABERTA) */
+/* BOTÃO ☰☰ */
 #openModules {
   position: absolute;
   bottom: 20px;
@@ -58,18 +59,9 @@ body {
   display: block;
 }
 
-/* MÓDULOS */
-.module {
-  background: #333;
-  padding: 12px;
-  margin: 10px 0;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
 /* CONTEÚDO */
 #main {
-  padding: 80px 20px 100px;
+  padding: 80px 20px;
 }
 
 .screen {
@@ -91,25 +83,27 @@ body {
   justify-content: center;
 }
 
-/* ABA DE BAIXO */
+/* 🔥 BARRA DE BAIXO (COMEÇA INVISÍVEL TOTAL) */
 #bottomPanel {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: -160px;
+  bottom: 0;
   height: 160px;
   background: #222;
   color: white;
   padding: 20px;
-  display: flex;
+  display: none; /* ESSENCIAL */
+  flex-direction: row;
   gap: 10px;
-  transition: 0.3s;
+  z-index: 998;
 }
 
 #bottomPanel.active {
-  bottom: 0;
+  display: flex;
 }
 
+/* ITENS */
 .bottom-item {
   background: #444;
   padding: 10px;
@@ -129,10 +123,9 @@ body {
   <h3>RESP</h3>
 
   <div id="modulesList">
-    <div class="module" onclick="openScreen('home')">Início</div>
+    <div class="bottom-item">Início</div>
   </div>
 
-  <!-- BOTÃO QUE SÓ APARECE COM SIDEBAR -->
   <div id="openModules">☰☰</div>
 </div>
 
@@ -142,9 +135,6 @@ body {
     <div class="card">Vídeo</div>
     <div class="card">Post</div>
   </div>
-
-  <div id="Vídeos" class="screen"></div>
-  <div id="Chat" class="screen"></div>
 </div>
 
 <div id="bottomPanel">
@@ -156,62 +146,30 @@ body {
 <script>
 const sidebar = document.getElementById("sidebar");
 const panel = document.getElementById("bottomPanel");
-const modulesList = document.getElementById("modulesList");
 
+// ABRIR SIDEBAR
 menuBtn.onclick = () => {
   sidebar.classList.toggle("active");
 
-  // FECHA A ABA DE BAIXO se fechar sidebar
+  // se fechar sidebar, esconde tudo
   if (!sidebar.classList.contains("active")) {
     panel.classList.remove("active");
+    panel.style.display = "none";
   }
 };
 
+// FECHAR
 closeBtn.onclick = () => {
   sidebar.classList.remove("active");
   panel.classList.remove("active");
+  panel.style.display = "none";
 };
 
 // ABRIR ABA DE BAIXO
 openModules.onclick = () => {
+  panel.style.display = "flex"; // aparece
   panel.classList.toggle("active");
 };
-
-// DRAG
-document.querySelectorAll('.bottom-item').forEach(item => {
-  item.addEventListener('dragstart', e => {
-    e.dataTransfer.setData('text', item.innerText);
-  });
-});
-
-// DROP
-sidebar.addEventListener('dragover', e => e.preventDefault());
-
-sidebar.addEventListener('drop', e => {
-  const data = e.dataTransfer.getData('text');
-
-  if ([...modulesList.children].some(el => el.innerText === data)) return;
-
-  const newModule = document.createElement('div');
-  newModule.className = 'module';
-  newModule.innerText = data;
-  newModule.onclick = () => openScreen(data);
-
-  modulesList.appendChild(newModule);
-});
-
-// TROCAR TELA
-function openScreen(name) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-
-  const screen = document.getElementById(name);
-  if (screen) {
-    screen.classList.add('active');
-  }
-
-  sidebar.classList.remove("active");
-  panel.classList.remove("active");
-}
 </script>
 
 </body>
