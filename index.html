@@ -38,7 +38,7 @@ body {
   left: 0;
 }
 
-/* BOTÃO FECHAR */
+/* FECHAR */
 #closeBtn {
   position: absolute;
   top: 10px;
@@ -55,7 +55,7 @@ body {
   border-radius: 8px;
 }
 
-/* BOTÃO DO SUBMENU */
+/* BOTÃO SUBMENU */
 #openModules {
   position: absolute;
   bottom: 20px;
@@ -92,15 +92,31 @@ body {
 /* PAINEL INFERIOR */
 #bottomPanel {
   position: fixed;
-  bottom: -220px;
+  bottom: -150px;
   left: 0;
   right: 0;
+  height: 180px;
   background: #222;
   color: white;
-  padding: 20px;
+  padding: 30px 15px 15px;
   display: flex;
   gap: 10px;
   transition: 0.3s;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+}
+
+/* puxador visível */
+#bottomPanel::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 5px;
+  background: #888;
+  border-radius: 10px;
 }
 
 #bottomPanel.active {
@@ -118,7 +134,7 @@ body {
 
 <body>
 
-<!-- BOTÃO ☰ -->
+<!-- MENU -->
 <div id="menuBtn">☰</div>
 
 <!-- SIDEBAR -->
@@ -164,7 +180,6 @@ body {
 </div>
 
 <script>
-// ELEMENTOS
 const menuBtn = document.getElementById("menuBtn");
 const sidebar = document.getElementById("sidebar");
 const panel = document.getElementById("bottomPanel");
@@ -172,12 +187,12 @@ const openModules = document.getElementById("openModules");
 const closeBtn = document.getElementById("closeBtn");
 const modulesList = document.getElementById("modulesList");
 
-// ABRIR MENU
+// MENU
 menuBtn.onclick = () => {
   sidebar.classList.toggle("active");
 };
 
-// FECHAR MENU
+// FECHAR
 closeBtn.onclick = () => {
   sidebar.classList.remove("active");
   panel.classList.remove("active");
@@ -195,7 +210,7 @@ document.querySelectorAll('.bottom-item').forEach(item => {
   });
 });
 
-// PERMITIR DROP NA SIDEBAR INTEIRA
+// DROP NA SIDEBAR
 sidebar.addEventListener('dragover', e => {
   e.preventDefault();
 });
