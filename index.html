@@ -2,34 +2,70 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>RESP - Protótipo</title>
+<title>RESP</title>
 
 <style>
 body {
   margin: 0;
   font-family: Arial;
-  display: flex;
+  overflow-x: hidden;
 }
 
-/* MENU LATERAL */
+/* BOTÃO MENU */
+#menuBtn {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+/* SIDEBAR */
 #sidebar {
-  width: 220px;
+  position: fixed;
+  left: -250px;
+  top: 0;
+  width: 250px;
+  height: 100%;
   background: #111;
   color: white;
-  padding: 10px;
+  transition: 0.3s;
+  padding: 15px;
+}
+
+#sidebar.active {
+  left: 0;
 }
 
 .module {
   background: #333;
-  margin: 10px 0;
   padding: 10px;
-  cursor: grab;
+  margin: 10px 0;
+  cursor: pointer;
 }
 
-/* ÁREA PRINCIPAL */
+/* BOTÃO DO SUBMENU */
+#openModules {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* CONTEÚDO */
 #main {
-  flex: 1;
-  padding: 20px;
+  padding: 60px 20px;
+  transition: 0.3s;
+}
+
+/* TELAS */
+.screen {
+  display: none;
+}
+
+.screen.active {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
@@ -46,13 +82,18 @@ body {
 /* PAINEL INFERIOR */
 #bottomPanel {
   position: fixed;
-  bottom: 0;
-  left: 220px;
+  bottom: -200px;
+  left: 0;
   right: 0;
   background: #222;
   color: white;
+  padding: 15px;
   display: flex;
-  padding: 10px;
+  transition: 0.3s;
+}
+
+#bottomPanel.active {
+  bottom: 0;
 }
 
 .bottom-item {
@@ -66,23 +107,44 @@ body {
 
 <body>
 
-<!-- MENU -->
+<!-- BOTÃO ☰ -->
+<div id="menuBtn">☰</div>
+
+<!-- SIDEBAR -->
 <div id="sidebar">
   <h3>RESP</h3>
-  <div id="activeModules"></div>
+
+  <div id="modulesList">
+    <div class="module" onclick="openScreen('home')">Início</div>
+  </div>
+
+  <!-- ☰☰ -->
+  <div id="openModules">☰☰</div>
 </div>
 
 <!-- CONTEÚDO -->
 <div id="main">
-  <div class="card">Produto</div>
-  <div class="card">Vídeo</div>
-  <div class="card">Post</div>
-  <div class="card">Produto</div>
-  <div class="card">Vídeo</div>
-  <div class="card">Post</div>
+
+  <!-- TELA INICIAL -->
+  <div id="home" class="screen active">
+    <div class="card">Produto</div>
+    <div class="card">Vídeo</div>
+    <div class="card">Post</div>
+    <div class="card">Produto</div>
+    <div class="card">Vídeo</div>
+    <div class="card">Post</div>
+  </div>
+
+  <!-- TELAS DINÂMICAS -->
+  <div id="Vídeos" class="screen"></div>
+  <div id="Chat" class="screen"></div>
+  <div id="Feed" class="screen"></div>
+  <div id="Loja" class="screen"></div>
+  <div id="Comunidade" class="screen"></div>
+
 </div>
 
-<!-- PAINEL INFERIOR -->
+<!-- PAINEL -->
 <div id="bottomPanel">
   <div class="bottom-item" draggable="true">Vídeos</div>
   <div class="bottom-item" draggable="true">Chat</div>
@@ -92,8 +154,25 @@ body {
 </div>
 
 <script>
+// ABRIR MENU
+const menuBtn = document.getElementById("menuBtn");
+const sidebar = document.getElementById("sidebar");
+
+menuBtn.onclick = () => {
+  sidebar.classList.toggle("active");
+};
+
+// ABRIR PAINEL
+const openModules = document.getElementById("openModules");
+const panel = document.getElementById("bottomPanel");
+
+openModules.onclick = () => {
+  panel.classList.toggle("active");
+};
+
+// DRAG
 const items = document.querySelectorAll('.bottom-item');
-const sidebar = document.getElementById('activeModules');
+const modulesList = document.getElementById('modulesList');
 
 items.forEach(item => {
   item.addEventListener('dragstart', e => {
@@ -101,17 +180,43 @@ items.forEach(item => {
   });
 });
 
-sidebar.addEventListener('dragover', e => {
+modulesList.addEventListener('dragover', e => {
   e.preventDefault();
 });
 
-sidebar.addEventListener('drop', e => {
+modulesList.addEventListener('drop', e => {
   const data = e.dataTransfer.getData('text');
+
+  // evitar duplicar
+  if ([...modulesList.children].some(el => el.innerText === data)) return;
+
   const newModule = document.createElement('div');
   newModule.className = 'module';
   newModule.innerText = data;
-  sidebar.appendChild(newModule);
+  newModule.onclick = () => openScreen(data);
+
+  modulesList.appendChild(newModule);
 });
+
+// TROCAR TELA
+function openScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+
+  const screen = document.getElementById(name);
+  if (screen) {
+    screen.classList.add('active');
+
+    // conteúdo fake
+    if (screen.innerHTML === "") {
+      for (let i = 0; i < 6; i++) {
+        let div = document.createElement("div");
+        div.className = "card";
+        div.innerText = name;
+        screen.appendChild(div);
+      }
+    }
+  }
+}
 </script>
 
 </body>
