@@ -9,64 +9,88 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-storage-compat.js"></script>
 
     <style>
-        :root { --primary: #ff0000; --bg: #f9f9f9; --text: #0f0f0f; --border: #e5e5e5; }
+        :root { --primary: #065fd4; --bg: #f9f9f9; --text: #0f0f0f; --border: #e5e5e5; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
-        body { background-color: var(--bg); color: var(--text); }
+        body { background-color: var(--bg); color: var(--text); overflow-x: hidden; }
+        
         header { height: 56px; background: white; display: flex; align-items: center; padding: 0 16px; position: fixed; width: 100%; z-index: 100; border-bottom: 1px solid var(--border); }
-        .sidebar { position: fixed; left: -240px; top: 0; width: 240px; height: 100%; background: white; transition: 0.3s; z-index: 101; padding: 70px 15px; border-right: 1px solid var(--border); }
+        
+        /* SIDEBAR */
+        .sidebar { position: fixed; left: -240px; top: 0; width: 240px; height: 100%; background: white; transition: 0.3s; z-index: 101; padding: 70px 15px; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
         .sidebar.active { left: 0; }
-        .module-item { padding: 12px; border-radius: 8px; cursor: pointer; margin-bottom: 5px; background: #f2f2f2; }
+        
+        .module-list { flex-grow: 1; list-style: none; min-height: 50px; }
+        .module-list.drag-over { background: #f0f7ff; border: 2px dashed var(--primary); border-radius: 8px; }
+        
+        .module-item { padding: 12px; border-radius: 8px; cursor: pointer; margin-bottom: 8px; background: #f2f2f2; font-weight: 500; transition: 0.2s; }
+        .module-item:hover { background: #e5e5e5; }
+
+        /* BARRA DE PERSONALIZAÇÃO INFERIOR */
+        .bottom-panel { position: fixed; bottom: 20px; left: 260px; right: 20px; background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px; z-index: 1000; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); display: flex; gap: 10px; align-items: center; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        .draggable-item { padding: 10px 20px; background: #000; color: white; border-radius: 8px; cursor: grab; font-size: 14px; }
+
+        /* CONTEÚDO */
         main { padding: 80px 20px; max-width: 1200px; margin: 0 auto; }
-        .btn-add { background: #065fd4; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        .btn-add { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        
         .video-form { background: white; border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-bottom: 20px; display: none; flex-direction: column; gap: 10px; }
-        .video-form input, .video-form textarea { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .video-form input, .video-form textarea { padding: 12px; border: 1px solid #ccc; border-radius: 6px; }
+
         .content-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .video-card { cursor: pointer; background: white; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+        .video-card { cursor: pointer; background: white; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); transition: 0.2s; }
+        .video-card:hover { transform: translateY(-5px); }
         .thumbnail { width: 100%; aspect-ratio: 16/9; background: #000; }
         .thumbnail video { width: 100%; height: 100%; object-fit: cover; }
+
         #playerView { display: none; flex-direction: column; gap: 15px; }
         .main-video { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; }
-        #loading { display: none; color: #065fd4; font-weight: bold; margin: 10px 0; }
+
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; z-index: 100; }
         .overlay.active { display: block; }
+        
+        .config-btn { background: #000; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; margin-top: auto; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <header>
         <button onclick="toggleSidebar()" style="background:none; border:none; font-size:24px; cursor:pointer;">☰</button>
-        <h3 style="margin-left:15px;">RESP - Rede Global</h3>
+        <h3 style="margin-left:15px; font-weight: 900;">RESP</h3>
     </header>
 
     <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
     <aside class="sidebar" id="sidebar">
-        <ul id="moduleList">
+        <ul class="module-list" id="moduleList">
             <li class="module-item" onclick="changeContent('Início')">Início</li>
-            <li class="module-item" onclick="changeContent('Vídeos')">Vídeos</li>
         </ul>
+        <button class="config-btn" onclick="toggleBottomPanel()">☰☰ PERSONALIZAR</button>
     </aside>
 
     <main>
         <section id="listView">
-            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                 <h1 id="pageTitle">Início</h1>
                 <button id="addBtn" class="btn-add" style="display:none;" onclick="toggleForm()">+ Postar Vídeo</button>
             </div>
 
             <div id="videoForm" class="video-form">
-                <input type="text" id="vTitle" placeholder="Título">
+                <input type="text" id="vTitle" placeholder="Título do vídeo">
                 <textarea id="vDesc" placeholder="Descrição"></textarea>
                 <input type="file" id="vFile" accept="video/*">
-                <div id="loading">Enviando vídeo para o resp-f1...</div>
-                <button class="btn-add" onclick="uploadVideo()">Publicar Agora</button>
+                <div id="loadingStatus" style="display:none; color: var(--primary); font-weight: bold;">
+                    ⏳ Enviando... Isso pode demorar dependendo do tamanho do vídeo.
+                </div>
+                <button id="pubBtn" class="btn-add" onclick="uploadVideo()">Publicar Agora</button>
             </div>
 
             <div class="content-grid" id="grid"></div>
         </section>
 
         <section id="playerView">
-            <button onclick="closePlayer()" style="margin-bottom:20px; cursor:pointer; padding:5px 15px;">← Voltar</button>
+            <button onclick="closePlayer()" style="margin-bottom:20px; cursor:pointer; padding:8px 20px; border-radius: 20px; border: 1px solid #ccc;">← Voltar</button>
             <video id="playerElement" class="main-video" controls autoplay></video>
             <h2 id="playerTitle" style="margin-top:15px;"></h2>
             <p id="playerDesc" style="color:#606060; margin-top:10px;"></p>
@@ -74,7 +98,7 @@
     </main>
 
     <script>
-        // CONFIGURAÇÃO AUTOMÁTICA (Baseada na sua foto)
+        // Suas chaves do projeto resp-f1
         const firebaseConfig = {
             apiKey: "AIzaSyAvZl2jk8i8n0e9844cxw6mGdCWXB6CZ_w",
             authDomain: "resp-f1.firebaseapp.com",
@@ -88,11 +112,51 @@
         const db = firebase.firestore();
         const storage = firebase.storage();
 
+        let bottomPanel = null;
+        let activeModules = new Set(['Início']);
+
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('overlay').classList.toggle('active');
         }
 
+        // --- SISTEMA DE PERSONALIZAÇÃO (ARRASTAR) ---
+        function toggleBottomPanel() {
+            if (bottomPanel) { bottomPanel.remove(); bottomPanel = null; }
+            else {
+                bottomPanel = document.createElement('div');
+                bottomPanel.className = 'bottom-panel';
+                bottomPanel.innerHTML = `
+                    <span style="font-weight:bold; margin-right:10px">Arraste módulos:</span>
+                    <div class="draggable-item" draggable="true" ondragstart="drag(event)">Vídeos</div>
+                    <div class="draggable-item" draggable="true" ondragstart="drag(event)">Chat</div>
+                    <div class="draggable-item" draggable="true" ondragstart="drag(event)">Loja</div>
+                `;
+                document.body.appendChild(bottomPanel);
+            }
+        }
+
+        function drag(e) { e.dataTransfer.setData("text", e.target.innerText); }
+
+        const mList = document.getElementById('moduleList');
+        mList.ondragover = (e) => { e.preventDefault(); mList.classList.add('drag-over'); };
+        mList.ondragleave = () => mList.classList.remove('drag-over');
+        mList.ondrop = (e) => {
+            e.preventDefault();
+            mList.classList.remove('drag-over');
+            const name = e.dataTransfer.getData("text");
+            if (name && !activeModules.has(name)) {
+                activeModules.add(name);
+                const li = document.createElement('li');
+                li.className = 'module-item';
+                li.innerText = name;
+                li.onclick = () => changeContent(name);
+                mList.appendChild(li);
+                changeContent(name);
+            }
+        };
+
+        // --- SISTEMA DE VÍDEOS ---
         function toggleForm() {
             const f = document.getElementById('videoForm');
             f.style.display = (f.style.display === 'flex') ? 'none' : 'flex';
@@ -103,9 +167,14 @@
             const title = document.getElementById('vTitle').value;
             const desc = document.getElementById('vDesc').value;
 
-            if (!file) return alert("Escolha um vídeo primeiro!");
+            if (!file) return alert("Selecione um arquivo de vídeo!");
+
+            const loading = document.getElementById('loadingStatus');
+            const pubBtn = document.getElementById('pubBtn');
             
-            document.getElementById('loading').style.display = 'block';
+            loading.style.display = 'block';
+            pubBtn.disabled = true;
+            pubBtn.innerText = "Enviando...";
 
             try {
                 const ref = storage.ref('videos/' + Date.now() + "_" + file.name);
@@ -113,25 +182,26 @@
                 const url = await ref.getDownloadURL();
 
                 await db.collection("videos").add({
-                    title: title || "Vídeo de Arthur",
+                    title: title || "Sem título",
                     desc: desc || "",
                     url: url,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                alert("Sucesso! Vídeo disponível para todos.");
+                alert("Vídeo publicado com sucesso na rede global!");
                 location.reload();
-            } catch (error) {
-                console.error(error);
-                alert("Erro! Verifique se você ativou o Storage e Firestore no modo de teste.");
+            } catch (err) {
+                alert("Erro ao enviar. Verifique se o Storage/Firestore estão no 'Modo de Teste'.");
+                loading.style.display = 'none';
+                pubBtn.disabled = false;
+                pubBtn.innerText = "Publicar Agora";
             }
         }
 
         function loadVideos() {
             const grid = document.getElementById('grid');
-            grid.innerHTML = "<p>Conectando ao resp-f1...</p>";
-
-            db.collection("videos").orderBy("createdAt", "desc").onSnapshot((snap) => {
+            grid.innerHTML = "<p>Carregando feed global...</p>";
+            db.collection("videos").orderBy("createdAt", "desc").onSnapshot(snap => {
                 grid.innerHTML = "";
                 snap.forEach(doc => {
                     const v = doc.data();
@@ -143,11 +213,10 @@
                         document.getElementById('playerElement').src = v.url;
                         document.getElementById('playerTitle').innerText = v.title;
                         document.getElementById('playerDesc').innerText = v.desc;
+                        window.scrollTo(0,0);
                     };
-                    card.innerHTML = `
-                        <div class="thumbnail"><video src="${v.url}#t=0.5"></video></div>
-                        <div style="padding:10px;"><h3>${v.title}</h3><p style="font-size:12px; color:gray;">Toque para assistir</p></div>
-                    `;
+                    card.innerHTML = `<div class="thumbnail"><video src="${v.url}#t=0.5"></video></div>
+                                      <div style="padding:15px;"><h3>${v.title}</h3><p style="color:gray; font-size:13px; margin-top:5px;">Assista agora</p></div>`;
                     grid.appendChild(card);
                 });
             });
@@ -162,12 +231,11 @@
         function changeContent(name) {
             document.getElementById('pageTitle').innerText = name;
             document.getElementById('addBtn').style.display = (name === 'Vídeos') ? 'block' : 'none';
+            document.getElementById('grid').innerHTML = "";
             if (name === 'Vídeos') loadVideos();
-            else document.getElementById('grid').innerHTML = "<p>Bem-vindo à sua rede personalizável.</p>";
+            else document.getElementById('grid').innerHTML = `<p>Você está na aba ${name}. Arraste novos módulos para compor sua rede.</p>`;
             if (window.innerWidth < 768) toggleSidebar();
         }
-
-        changeContent('Início');
     </script>
 </body>
 </html>
