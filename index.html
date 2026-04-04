@@ -3,102 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RESP – Rede Social Personalizável</title>
+    <title>RESP – Sistema de Personalização</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-storage-compat.js"></script>
 
     <style>
         :root { --primary: #065fd4; --bg: #f9f9f9; --text: #0f0f0f; --border: #e5e5e5; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
-        body { background-color: var(--bg); color: var(--text); overflow-x: hidden; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); }
         
         header { height: 56px; background: white; display: flex; align-items: center; padding: 0 16px; position: fixed; width: 100%; z-index: 100; border-bottom: 1px solid var(--border); }
         
         /* SIDEBAR */
-        .sidebar { position: fixed; left: -240px; top: 0; width: 240px; height: 100%; background: white; transition: 0.3s; z-index: 101; padding: 70px 15px; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .sidebar { position: fixed; left: -260px; top: 0; width: 260px; height: 100%; background: white; transition: 0.3s; z-index: 101; padding: 80px 20px; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
         .sidebar.active { left: 0; }
         
-        .module-list { flex-grow: 1; list-style: none; min-height: 50px; }
-        .module-list.drag-over { background: #f0f7ff; border: 2px dashed var(--primary); border-radius: 8px; }
+        .module-list { flex-grow: 1; list-style: none; min-height: 100px; border: 2px dashed transparent; transition: 0.3s; }
+        .module-list.drag-over { border-color: var(--primary); background: #f0f7ff; }
         
-        .module-item { padding: 12px; border-radius: 8px; cursor: pointer; margin-bottom: 8px; background: #f2f2f2; font-weight: 500; transition: 0.2s; }
-        .module-item:hover { background: #e5e5e5; }
+        .module-item { padding: 15px; border-radius: 10px; cursor: pointer; margin-bottom: 10px; background: #eee; font-weight: bold; text-align: center; }
 
-        /* BARRA DE PERSONALIZAÇÃO INFERIOR */
-        .bottom-panel { position: fixed; bottom: 20px; left: 260px; right: 20px; background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px; z-index: 1000; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); display: flex; gap: 10px; align-items: center; animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        /* BARRA INFERIOR DE PERSONALIZAÇÃO */
+        .bottom-panel { position: fixed; bottom: 0; left: 0; width: 100%; background: #ffd700; /* Amarelo para destacar */ padding: 25px; z-index: 2000; box-shadow: 0 -5px 15px rgba(0,0,0,0.2); display: none; justify-content: center; gap: 20px; align-items: center; }
+        .draggable-item { padding: 12px 25px; background: #000; color: white; border-radius: 8px; cursor: grab; font-weight: bold; }
+
+        /* CONTEÚDO PRINCIPAL */
+        main { padding: 80px 20px; max-width: 1100px; margin: 0 auto; }
+        .btn-add { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
         
-        .draggable-item { padding: 10px 20px; background: #000; color: white; border-radius: 8px; cursor: grab; font-size: 14px; }
+        .video-form { background: white; border: 1px solid var(--border); padding: 25px; border-radius: 15px; margin-bottom: 30px; display: none; flex-direction: column; gap: 12px; }
+        .video-form input, .video-form textarea { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
 
-        /* CONTEÚDO */
-        main { padding: 80px 20px; max-width: 1200px; margin: 0 auto; }
-        .btn-add { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-        
-        .video-form { background: white; border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-bottom: 20px; display: none; flex-direction: column; gap: 10px; }
-        .video-form input, .video-form textarea { padding: 12px; border: 1px solid #ccc; border-radius: 6px; }
-
-        .content-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .video-card { cursor: pointer; background: white; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); transition: 0.2s; }
-        .video-card:hover { transform: translateY(-5px); }
-        .thumbnail { width: 100%; aspect-ratio: 16/9; background: #000; }
+        .content-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        .video-card { cursor: pointer; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .thumbnail { width: 100%; aspect-ratio: 16/9; background: #000; display: flex; align-items: center; justify-content: center; }
         .thumbnail video { width: 100%; height: 100%; object-fit: cover; }
 
-        #playerView { display: none; flex-direction: column; gap: 15px; }
-        .main-video { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; }
+        #playerView { display: none; flex-direction: column; gap: 20px; }
+        .main-video { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 15px; }
 
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; z-index: 100; }
         .overlay.active { display: block; }
         
-        .config-btn { background: #000; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; margin-top: auto; font-weight: bold; }
+        .config-btn { background: #000; color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; margin-top: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <header>
-        <button onclick="toggleSidebar()" style="background:none; border:none; font-size:24px; cursor:pointer;">☰</button>
-        <h3 style="margin-left:15px; font-weight: 900;">RESP</h3>
+        <button onclick="toggleSidebar()" style="background:none; border:none; font-size:28px; cursor:pointer;">☰</button>
+        <h2 style="margin-left:15px; letter-spacing: -1px;">RESP</h2>
     </header>
 
     <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
     <aside class="sidebar" id="sidebar">
+        <h3 style="margin-bottom: 20px;">Menu</h3>
         <ul class="module-list" id="moduleList">
             <li class="module-item" onclick="changeContent('Início')">Início</li>
         </ul>
-        <button class="config-btn" onclick="toggleBottomPanel()">☰☰ PERSONALIZAR</button>
+        <button class="config-btn" onclick="toggleBottomPanel()">⚙️ PERSONALIZAR BARRA</button>
     </aside>
 
     <main>
-        <section id="listView">
+        <div id="listView">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                 <h1 id="pageTitle">Início</h1>
-                <button id="addBtn" class="btn-add" style="display:none;" onclick="toggleForm()">+ Postar Vídeo</button>
+                <button id="addBtn" class="btn-add" style="display:none;" onclick="toggleForm()">+ Novo Vídeo</button>
             </div>
 
             <div id="videoForm" class="video-form">
-                <input type="text" id="vTitle" placeholder="Título do vídeo">
+                <h3>Publicar na Rede Global</h3>
+                <input type="text" id="vTitle" placeholder="Título">
                 <textarea id="vDesc" placeholder="Descrição"></textarea>
                 <input type="file" id="vFile" accept="video/*">
-                <div id="loadingStatus" style="display:none; color: var(--primary); font-weight: bold;">
-                    ⏳ Enviando... Isso pode demorar dependendo do tamanho do vídeo.
-                </div>
-                <button id="pubBtn" class="btn-add" onclick="uploadVideo()">Publicar Agora</button>
+                <button id="pubBtn" class="btn-add" style="margin-top:10px" onclick="uploadVideo()">🚀 Publicar Agora</button>
+                <p id="upInfo" style="display:none; color: var(--primary);">Enviando... por favor, não feche a aba.</p>
             </div>
 
             <div class="content-grid" id="grid"></div>
-        </section>
+        </div>
 
-        <section id="playerView">
-            <button onclick="closePlayer()" style="margin-bottom:20px; cursor:pointer; padding:8px 20px; border-radius: 20px; border: 1px solid #ccc;">← Voltar</button>
+        <div id="playerView">
+            <button onclick="closePlayer()" style="padding:10px 20px; cursor:pointer; border-radius:30px; border:1px solid #ccc;">← Voltar ao Feed</button>
             <video id="playerElement" class="main-video" controls autoplay></video>
-            <h2 id="playerTitle" style="margin-top:15px;"></h2>
-            <p id="playerDesc" style="color:#606060; margin-top:10px;"></p>
-        </section>
+            <h2 id="playerTitle"></h2>
+            <p id="playerDesc" style="color:#606060;"></p>
+        </div>
     </main>
 
+    <div id="bottomPanel" class="bottom-panel">
+        <span style="font-weight:bold;">Arraste para a Sidebar:</span>
+        <div class="draggable-item" draggable="true" ondragstart="drag(event)">Vídeos</div>
+        <div class="draggable-item" draggable="true" ondragstart="drag(event)">Chat</div>
+        <div class="draggable-item" draggable="true" ondragstart="drag(event)">Loja</div>
+        <button onclick="toggleBottomPanel()" style="margin-left:20px; cursor:pointer; padding:5px 10px;">Fechar [X]</button>
+    </div>
+
     <script>
-        // Suas chaves do projeto resp-f1
         const firebaseConfig = {
             apiKey: "AIzaSyAvZl2jk8i8n0e9844cxw6mGdCWXB6CZ_w",
             authDomain: "resp-f1.firebaseapp.com",
@@ -112,7 +115,6 @@
         const db = firebase.firestore();
         const storage = firebase.storage();
 
-        let bottomPanel = null;
         let activeModules = new Set(['Início']);
 
         function toggleSidebar() {
@@ -120,22 +122,12 @@
             document.getElementById('overlay').classList.toggle('active');
         }
 
-        // --- SISTEMA DE PERSONALIZAÇÃO (ARRASTAR) ---
         function toggleBottomPanel() {
-            if (bottomPanel) { bottomPanel.remove(); bottomPanel = null; }
-            else {
-                bottomPanel = document.createElement('div');
-                bottomPanel.className = 'bottom-panel';
-                bottomPanel.innerHTML = `
-                    <span style="font-weight:bold; margin-right:10px">Arraste módulos:</span>
-                    <div class="draggable-item" draggable="true" ondragstart="drag(event)">Vídeos</div>
-                    <div class="draggable-item" draggable="true" ondragstart="drag(event)">Chat</div>
-                    <div class="draggable-item" draggable="true" ondragstart="drag(event)">Loja</div>
-                `;
-                document.body.appendChild(bottomPanel);
-            }
+            const panel = document.getElementById('bottomPanel');
+            panel.style.display = (panel.style.display === 'flex') ? 'none' : 'flex';
         }
 
+        // --- DRAG AND DROP ---
         function drag(e) { e.dataTransfer.setData("text", e.target.innerText); }
 
         const mList = document.getElementById('moduleList');
@@ -164,17 +156,10 @@
 
         async function uploadVideo() {
             const file = document.getElementById('vFile').files[0];
-            const title = document.getElementById('vTitle').value;
-            const desc = document.getElementById('vDesc').value;
-
-            if (!file) return alert("Selecione um arquivo de vídeo!");
-
-            const loading = document.getElementById('loadingStatus');
-            const pubBtn = document.getElementById('pubBtn');
+            if (!file) return alert("Selecione um vídeo!");
             
-            loading.style.display = 'block';
-            pubBtn.disabled = true;
-            pubBtn.innerText = "Enviando...";
+            document.getElementById('upInfo').style.display = 'block';
+            document.getElementById('pubBtn').disabled = true;
 
             try {
                 const ref = storage.ref('videos/' + Date.now() + "_" + file.name);
@@ -182,25 +167,22 @@
                 const url = await ref.getDownloadURL();
 
                 await db.collection("videos").add({
-                    title: title || "Sem título",
-                    desc: desc || "",
+                    title: document.getElementById('vTitle').value || "Sem título",
+                    desc: document.getElementById('vDesc').value || "",
                     url: url,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                alert("Vídeo publicado com sucesso na rede global!");
+                alert("Vídeo enviado com sucesso!");
                 location.reload();
             } catch (err) {
-                alert("Erro ao enviar. Verifique se o Storage/Firestore estão no 'Modo de Teste'.");
-                loading.style.display = 'none';
-                pubBtn.disabled = false;
-                pubBtn.innerText = "Publicar Agora";
+                alert("Erro! Verifique se ativou o Storage no modo de teste.");
             }
         }
 
         function loadVideos() {
             const grid = document.getElementById('grid');
-            grid.innerHTML = "<p>Carregando feed global...</p>";
+            grid.innerHTML = "Carregando...";
             db.collection("videos").orderBy("createdAt", "desc").onSnapshot(snap => {
                 grid.innerHTML = "";
                 snap.forEach(doc => {
@@ -213,10 +195,9 @@
                         document.getElementById('playerElement').src = v.url;
                         document.getElementById('playerTitle').innerText = v.title;
                         document.getElementById('playerDesc').innerText = v.desc;
-                        window.scrollTo(0,0);
                     };
                     card.innerHTML = `<div class="thumbnail"><video src="${v.url}#t=0.5"></video></div>
-                                      <div style="padding:15px;"><h3>${v.title}</h3><p style="color:gray; font-size:13px; margin-top:5px;">Assista agora</p></div>`;
+                                      <div style="padding:15px;"><h3>${v.title}</h3></div>`;
                     grid.appendChild(card);
                 });
             });
@@ -233,7 +214,7 @@
             document.getElementById('addBtn').style.display = (name === 'Vídeos') ? 'block' : 'none';
             document.getElementById('grid').innerHTML = "";
             if (name === 'Vídeos') loadVideos();
-            else document.getElementById('grid').innerHTML = `<p>Você está na aba ${name}. Arraste novos módulos para compor sua rede.</p>`;
+            else document.getElementById('grid').innerHTML = `<p>Aba ${name} aberta.</p>`;
             if (window.innerWidth < 768) toggleSidebar();
         }
     </script>
