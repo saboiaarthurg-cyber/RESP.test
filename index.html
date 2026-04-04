@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>RESP - Protótipo</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  display: flex;
+}
+
+/* MENU LATERAL */
+#sidebar {
+  width: 220px;
+  background: #111;
+  color: white;
+  padding: 10px;
+}
+
+.module {
+  background: #333;
+  margin: 10px 0;
+  padding: 10px;
+  cursor: grab;
+}
+
+/* ÁREA PRINCIPAL */
+#main {
+  flex: 1;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.card {
+  height: 150px;
+  background: #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* PAINEL INFERIOR */
+#bottomPanel {
+  position: fixed;
+  bottom: 0;
+  left: 220px;
+  right: 0;
+  background: #222;
+  color: white;
+  display: flex;
+  padding: 10px;
+}
+
+.bottom-item {
+  background: #444;
+  margin-right: 10px;
+  padding: 10px;
+  cursor: grab;
+}
+</style>
+</head>
+
+<body>
+
+<!-- MENU -->
+<div id="sidebar">
+  <h3>RESP</h3>
+  <div id="activeModules"></div>
+</div>
+
+<!-- CONTEÚDO -->
+<div id="main">
+  <div class="card">Produto</div>
+  <div class="card">Vídeo</div>
+  <div class="card">Post</div>
+  <div class="card">Produto</div>
+  <div class="card">Vídeo</div>
+  <div class="card">Post</div>
+</div>
+
+<!-- PAINEL INFERIOR -->
+<div id="bottomPanel">
+  <div class="bottom-item" draggable="true">Vídeos</div>
+  <div class="bottom-item" draggable="true">Chat</div>
+  <div class="bottom-item" draggable="true">Feed</div>
+  <div class="bottom-item" draggable="true">Loja</div>
+  <div class="bottom-item" draggable="true">Comunidade</div>
+</div>
+
+<script>
+const items = document.querySelectorAll('.bottom-item');
+const sidebar = document.getElementById('activeModules');
+
+items.forEach(item => {
+  item.addEventListener('dragstart', e => {
+    e.dataTransfer.setData('text', item.innerText);
+  });
+});
+
+sidebar.addEventListener('dragover', e => {
+  e.preventDefault();
+});
+
+sidebar.addEventListener('drop', e => {
+  const data = e.dataTransfer.getData('text');
+  const newModule = document.createElement('div');
+  newModule.className = 'module';
+  newModule.innerText = data;
+  sidebar.appendChild(newModule);
+});
+</script>
+
+</body>
+</html>
