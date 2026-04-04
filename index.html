@@ -3,94 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <title>RESP</title>
-
 <style>
-body {
-  margin: 0;
-  font-family: Arial;
-}
+body { margin:0; font-family:Arial; }
 
-/* MENU */
 #menuBtn {
-  position: fixed;
-  top: 15px;
-  left: 15px;
-  font-size: 26px;
-  cursor: pointer;
-  z-index: 1000;
+  position:fixed; top:15px; left:15px;
+  font-size:26px; cursor:pointer;
 }
 
-/* SIDEBAR */
 #sidebar {
-  position: fixed;
-  left: -260px;
-  top: 0;
-  width: 260px;
-  height: 100%;
-  background: #111;
-  color: white;
-  transition: 0.3s;
-  padding: 20px;
+  position:fixed;
+  left:-260px; top:0;
+  width:260px; height:100%;
+  background:#111; color:white;
+  padding:20px;
+  transition:0.3s;
 }
 
-#sidebar.active {
-  left: 0;
-}
+#sidebar.active { left:0; }
 
-#closeBtn {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  cursor: pointer;
-}
-
-/* BOTÃO ☰☰ */
 #openModules {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  font-size: 20px;
-  cursor: pointer;
-  display: none;
+  position:absolute;
+  bottom:20px; left:20px;
+  display:none;
+  cursor:pointer;
 }
 
 #sidebar.active #openModules {
-  display: block;
-}
-
-/* CONTEÚDO */
-#main {
-  padding: 80px 20px;
+  display:block;
 }
 
 .card {
-  height: 120px;
-  background: #ddd;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* BARRA (QUANDO EXISTIR) */
-.bottomPanel {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 160px;
-  background: #222;
-  color: white;
-  padding: 20px;
-  display: flex;
-  gap: 10px;
-  z-index: 999;
-}
-
-.bottom-item {
-  background: #444;
-  padding: 10px;
-  border-radius: 8px;
+  margin-top:100px;
+  height:120px;
+  background:#ddd;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 </style>
 </head>
@@ -100,55 +49,39 @@ body {
 <div id="menuBtn">☰</div>
 
 <div id="sidebar">
-  <div id="closeBtn">✖</div>
   <h3>RESP</h3>
-
   <div id="openModules">☰☰</div>
 </div>
 
-<div id="main">
-  <div class="card">Produto</div>
-</div>
+<div class="card">TESTE</div>
 
 <script>
-const sidebar = document.getElementById("sidebar");
-let panel = null; // NÃO EXISTE no começo
+let panel = null;
 
 menuBtn.onclick = () => {
   sidebar.classList.toggle("active");
 
-  // FECHOU SIDEBAR → REMOVE A BARRA
-  if (!sidebar.classList.contains("active")) {
-    if (panel) {
-      panel.remove();
-      panel = null;
-    }
-  }
-};
-
-closeBtn.onclick = () => {
-  sidebar.classList.remove("active");
-
-  if (panel) {
+  if (!sidebar.classList.contains("active") && panel) {
     panel.remove();
     panel = null;
   }
 };
 
-// CRIAR BARRA DO ZERO
 openModules.onclick = () => {
-
-  // evita duplicar
   if (panel) return;
 
   panel = document.createElement("div");
-  panel.className = "bottomPanel";
-
-  panel.innerHTML = `
-    <div class="bottom-item">Vídeos</div>
-    <div class="bottom-item">Chat</div>
-    <div class="bottom-item">Feed</div>
+  panel.style = `
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    height:150px;
+    background:#222;
+    color:white;
+    padding:20px;
   `;
+  panel.innerHTML = "PAINEL FUNCIONANDO";
 
   document.body.appendChild(panel);
 };
