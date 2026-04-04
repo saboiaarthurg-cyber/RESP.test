@@ -1,91 +1,300 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>RESP</title>
-<style>
-body { margin:0; font-family:Arial; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RESP – Rede Social Personalizável</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+            --accent: #f1f5f9;
+        }
 
-#menuBtn {
-  position:fixed; top:15px; left:15px;
-  font-size:26px; cursor:pointer;
-}
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
 
-#sidebar {
-  position:fixed;
-  left:-260px; top:0;
-  width:260px; height:100%;
-  background:#111; color:white;
-  padding:20px;
-  transition:0.3s;
-}
+        body { background-color: var(--bg); color: var(--text); overflow-x: hidden; }
 
-#sidebar.active { left:0; }
+        /* --- HEADER --- */
+        header {
+            height: 60px;
+            background: white;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid var(--border);
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+        }
 
-#openModules {
-  position:absolute;
-  bottom:20px; left:20px;
-  display:none;
-  cursor:pointer;
-}
+        .menu-toggle {
+            font-size: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text);
+        }
 
-#sidebar.active #openModules {
-  display:block;
-}
+        /* --- SIDEBAR --- */
+        .sidebar {
+            position: fixed;
+            left: -260px;
+            top: 0;
+            width: 260px;
+            height: 100%;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            transition: 0.3s ease;
+            z-index: 101;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+        }
 
-.card {
-  margin-top:100px;
-  height:120px;
-  background:#ddd;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-</style>
+        .sidebar.active { left: 0; }
+
+        .sidebar h2 { margin-bottom: 30px; color: var(--primary); letter-spacing: 2px; }
+
+        .module-list { flex-grow: 1; list-style: none; }
+
+        .module-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            background: var(--accent);
+            border: 1px solid transparent;
+            font-weight: 500;
+        }
+
+        .module-item:hover { background: #e0e7ff; color: var(--primary); }
+
+        .module-list.drag-over { border: 2px dashed var(--primary); border-radius: 8px; }
+
+        .config-btn {
+            background: var(--text);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        /* --- BOTTOM PANEL --- */
+        .bottom-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 280px;
+            right: 20px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+            z-index: 99;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .panel-grid { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; }
+
+        .draggable-item {
+            padding: 15px 25px;
+            background: var(--primary);
+            color: white;
+            border-radius: 8px;
+            cursor: grab;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            padding: 80px 20px 20px 20px;
+            transition: 0.3s;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .card-tag { font-size: 12px; color: var(--primary); font-weight: bold; margin-bottom: 10px; }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.2);
+            display: none;
+            z-index: 100;
+        }
+
+        .overlay.active { display: block; }
+
+        .suggestion-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0fdf4;
+            border-radius: 8px;
+            border: 1px solid #bbf7d0;
+        }
+        .suggestion-box h4 { font-size: 14px; margin-bottom: 5px; color: #166534; }
+        .suggestion-box p { font-size: 12px; color: #15803d; }
+
+    </style>
 </head>
-
 <body>
 
-<div id="menuBtn">☰</div>
+    <header>
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <h3 style="margin-left: 20px;">RESP</h3>
+    </header>
 
-<div id="sidebar">
-  <h3>RESP</h3>
-  <div id="openModules">☰☰</div>
-</div>
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-<div class="card">TESTE</div>
+    <aside class="sidebar" id="sidebar">
+        <h2>RESP</h2>
+        <ul class="module-list" id="moduleList" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+            <li class="module-item" onclick="changeContent('Início')">Início</li>
+        </ul>
 
-<script>
-let panel = null;
+        <div class="suggestion-box">
+            <h4>Redes sugeridas</h4>
+            <p>Tente: "Fitness Pro" ou "Art Gallery"</p>
+        </div>
 
-menuBtn.onclick = () => {
-  sidebar.classList.toggle("active");
+        <button class="config-btn" id="configBtn" onclick="toggleBottomPanel()" style="margin-top: 20px;">☰☰</button>
+    </aside>
 
-  if (!sidebar.classList.contains("active") && panel) {
-    panel.remove();
-    panel = null;
-  }
-};
+    <main id="mainContent">
+        <h1 id="pageTitle" style="margin-bottom: 20px;">Início</h1>
+        <div class="content-grid" id="grid">
+            </div>
+    </main>
 
-openModules.onclick = () => {
-  if (panel) return;
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const moduleList = document.getElementById('moduleList');
+        const grid = document.getElementById('grid');
+        const pageTitle = document.getElementById('pageTitle');
+        
+        let bottomPanel = null;
+        const activeModules = new Set(['Início']);
 
-  panel = document.createElement("div");
-  panel.style = `
-    position:fixed;
-    bottom:0;
-    left:0;
-    right:0;
-    height:150px;
-    background:#222;
-    color:white;
-    padding:20px;
-  `;
-  panel.innerHTML = "PAINEL FUNCIONANDO";
+        function toggleSidebar() {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+            // Se fechar a sidebar, remove o painel inferior do DOM
+            if (!sidebar.classList.contains('active')) {
+                removeBottomPanel();
+            }
+        }
 
-  document.body.appendChild(panel);
-};
-</script>
+        function toggleBottomPanel() {
+            if (bottomPanel) {
+                removeBottomPanel();
+            } else {
+                createBottomPanel();
+            }
+        }
 
+        function createBottomPanel() {
+            bottomPanel = document.createElement('div');
+            bottomPanel.className = 'bottom-panel';
+            bottomPanel.id = 'bottomPanel';
+            bottomPanel.innerHTML = `
+                <p style="margin-bottom:10px; font-weight:bold">Arraste para a barra lateral:</p>
+                <div class="panel-grid">
+                    <div class="draggable-item" draggable="true" ondragstart="handleDragStart(event)">Vídeos</div>
+                    <div class="draggable-item" draggable="true" ondragstart="handleDragStart(event)">Chat</div>
+                    <div class="draggable-item" draggable="true" ondragstart="handleDragStart(event)">Feed</div>
+                    <div class="draggable-item" draggable="true" ondragstart="handleDragStart(event)">Loja</div>
+                    <div class="draggable-item" draggable="true" ondragstart="handleDragStart(event)">Comunidade</div>
+                </div>
+            `;
+            document.body.appendChild(bottomPanel);
+        }
+
+        function removeBottomPanel() {
+            if (bottomPanel) {
+                bottomPanel.remove();
+                bottomPanel = null;
+            }
+        }
+
+        // --- Drag and Drop Logic ---
+
+        function handleDragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.innerText);
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const moduleName = e.dataTransfer.getData('text/plain');
+
+            if (moduleName && !activeModules.has(moduleName)) {
+                activeModules.add(moduleName);
+                
+                const li = document.createElement('li');
+                li.className = 'module-item';
+                li.innerText = moduleName;
+                li.onclick = () => changeContent(moduleName);
+                moduleList.appendChild(li);
+                
+                changeContent(moduleName);
+            }
+        }
+
+        // --- UI Logic ---
+
+        function changeContent(name) {
+            pageTitle.innerText = name;
+            grid.innerHTML = ''; // Limpa grid
+
+            // Gerar 6 cards de exemplo
+            for (let i = 1; i <= 6; i++) {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <span class="card-tag">${name.toUpperCase()}</span>
+                    <h3>Conteúdo de ${name} #${i}</h3>
+                    <p style="color: #64748b; margin-top: 10px;">Simulação de publicação ou item modular para a seção ${name}.</p>
+                `;
+                grid.appendChild(card);
+            }
+            
+            if(window.innerWidth < 768) toggleSidebar();
+        }
+
+        // Inicializar com conteúdo
+        changeContent('Início');
+
+    </script>
 </body>
 </html>
