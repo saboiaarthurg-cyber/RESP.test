@@ -11,7 +11,7 @@ body {
   overflow-x: hidden;
 }
 
-/* BOTÃO MENU */
+/* MENU */
 #menuBtn {
   position: fixed;
   top: 15px;
@@ -32,6 +32,7 @@ body {
   color: white;
   transition: 0.3s;
   padding: 20px;
+  z-index: 999;
 }
 
 #sidebar.active {
@@ -44,9 +45,9 @@ body {
   top: 10px;
   right: 15px;
   cursor: pointer;
-  font-size: 20px;
 }
 
+/* MÓDULOS */
 .module {
   background: #333;
   padding: 12px;
@@ -55,7 +56,7 @@ body {
   border-radius: 8px;
 }
 
-/* BOTÃO SUBMENU */
+/* BOTÃO ABRIR PAINEL */
 #openModules {
   position: absolute;
   bottom: 20px;
@@ -66,22 +67,21 @@ body {
 
 /* CONTEÚDO */
 #main {
-  padding: 80px 30px;
+  padding: 80px 20px;
 }
 
-/* TELAS */
 .screen {
   display: none;
 }
 
 .screen.active {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
 }
 
 .card {
-  height: 150px;
+  height: 120px;
   background: #ddd;
   display: flex;
   align-items: center;
@@ -89,55 +89,75 @@ body {
   border-radius: 12px;
 }
 
-/* PAINEL INFERIOR */
+/* PAINEL INFERIOR (BASE) */
 #bottomPanel {
   position: fixed;
-  bottom: -150px;
   left: 0;
   right: 0;
-  height: 180px;
   background: #222;
   color: white;
-  padding: 30px 15px 15px;
   display: flex;
   gap: 10px;
   transition: 0.3s;
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
+  z-index: 998;
 }
 
-/* puxador visível */
-#bottomPanel::before {
-  content: "";
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 50px;
-  height: 5px;
-  background: #888;
-  border-radius: 10px;
-}
-
-#bottomPanel.active {
-  bottom: 0;
-}
-
+/* ITENS */
 .bottom-item {
   background: #444;
-  padding: 12px;
+  padding: 10px;
   cursor: grab;
   border-radius: 8px;
+}
+
+/* ===== MODO MOBILE ===== */
+@media (max-width: 768px) {
+  #bottomPanel {
+    bottom: -140px;
+    height: 160px;
+    padding: 30px 10px 10px;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+  }
+
+  #bottomPanel.active {
+    bottom: 0;
+  }
+
+  #bottomPanel::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 5px;
+    background: #888;
+    border-radius: 10px;
+  }
+}
+
+/* ===== MODO PC ===== */
+@media (min-width: 769px) {
+  #bottomPanel {
+    bottom: 0; /* SEMPRE visível no PC */
+    height: 60px;
+    padding: 10px;
+    justify-content: center;
+    border-radius: 0;
+  }
+
+  #bottomPanel::before {
+    display: none; /* sem puxador */
+  }
 }
 </style>
 </head>
 
 <body>
 
-<!-- MENU -->
 <div id="menuBtn">☰</div>
 
-<!-- SIDEBAR -->
 <div id="sidebar">
   <div id="closeBtn">✖</div>
 
@@ -150,24 +170,17 @@ body {
   <div id="openModules">☰☰</div>
 </div>
 
-<!-- CONTEÚDO -->
 <div id="main">
-
   <div id="home" class="screen active">
     <div class="card">Produto</div>
     <div class="card">Vídeo</div>
     <div class="card">Post</div>
     <div class="card">Produto</div>
-    <div class="card">Vídeo</div>
-    <div class="card">Post</div>
   </div>
 
   <div id="Vídeos" class="screen"></div>
   <div id="Chat" class="screen"></div>
   <div id="Feed" class="screen"></div>
-  <div id="Loja" class="screen"></div>
-  <div id="Comunidade" class="screen"></div>
-
 </div>
 
 <!-- PAINEL -->
@@ -175,16 +188,11 @@ body {
   <div class="bottom-item" draggable="true">Vídeos</div>
   <div class="bottom-item" draggable="true">Chat</div>
   <div class="bottom-item" draggable="true">Feed</div>
-  <div class="bottom-item" draggable="true">Loja</div>
-  <div class="bottom-item" draggable="true">Comunidade</div>
 </div>
 
 <script>
-const menuBtn = document.getElementById("menuBtn");
 const sidebar = document.getElementById("sidebar");
 const panel = document.getElementById("bottomPanel");
-const openModules = document.getElementById("openModules");
-const closeBtn = document.getElementById("closeBtn");
 const modulesList = document.getElementById("modulesList");
 
 // MENU
@@ -192,15 +200,15 @@ menuBtn.onclick = () => {
   sidebar.classList.toggle("active");
 };
 
-// FECHAR
 closeBtn.onclick = () => {
   sidebar.classList.remove("active");
-  panel.classList.remove("active");
 };
 
-// ABRIR PAINEL
+// MOBILE: abrir painel
 openModules.onclick = () => {
-  panel.classList.toggle("active");
+  if (window.innerWidth <= 768) {
+    panel.classList.toggle("active");
+  }
 };
 
 // DRAG
@@ -210,10 +218,8 @@ document.querySelectorAll('.bottom-item').forEach(item => {
   });
 });
 
-// DROP NA SIDEBAR
-sidebar.addEventListener('dragover', e => {
-  e.preventDefault();
-});
+// DROP
+sidebar.addEventListener('dragover', e => e.preventDefault());
 
 sidebar.addEventListener('drop', e => {
   const data = e.dataTransfer.getData('text');
