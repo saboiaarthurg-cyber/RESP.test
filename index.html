@@ -49,7 +49,7 @@
             background: var(--sidebar-bg);
             border-right: 1px solid var(--border);
             transition: 0.3s ease;
-            z-index: 101;
+            z-index: 101; /* Camada alta */
             display: flex;
             flex-direction: column;
             padding: 20px;
@@ -60,7 +60,18 @@
 
         .sidebar h2 { margin-bottom: 30px; color: var(--primary); letter-spacing: 2px; }
 
-        .module-list { flex-grow: 1; list-style: none; }
+        .module-list { 
+            flex-grow: 1; 
+            list-style: none; 
+            min-height: 100px; /* Área de drop garantida */
+            padding: 10px 0;
+        }
+
+        .module-list.drag-over {
+            background: rgba(99, 102, 241, 0.05);
+            border: 2px dashed var(--primary);
+            border-radius: 8px;
+        }
 
         .module-item {
             padding: 12px 15px;
@@ -75,8 +86,6 @@
 
         .module-item:hover { background: #e0e7ff; color: var(--primary); }
 
-        .module-list.drag-over { border: 2px dashed var(--primary); border-radius: 8px; }
-
         .config-btn {
             background: var(--text);
             color: white;
@@ -86,6 +95,7 @@
             cursor: pointer;
             font-size: 18px;
             text-align: center;
+            z-index: 102;
         }
 
         /* --- BOTTOM PANEL --- */
@@ -99,13 +109,13 @@
             border-radius: 12px;
             padding: 20px;
             box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
-            z-index: 99;
+            z-index: 1000; /* Garante que fique acima de tudo ao arrastar */
             animation: slideUp 0.3s ease;
         }
 
         @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        .panel-grid { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; }
+        .panel-grid { display: flex; gap: 15px; overflow-x: auto; padding: 10px 0; }
 
         .draggable-item {
             padding: 15px 25px;
@@ -115,7 +125,10 @@
             cursor: grab;
             white-space: nowrap;
             user-select: none;
+            transition: transform 0.2s;
         }
+
+        .draggable-item:active { cursor: grabbing; transform: scale(0.95); }
 
         /* --- MAIN CONTENT --- */
         main {
@@ -179,7 +192,7 @@
 
     <aside class="sidebar" id="sidebar">
         <h2>RESP</h2>
-        <ul class="module-list" id="moduleList" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+        <ul class="module-list" id="moduleList">
             <li class="module-item" onclick="changeContent('Início')">Início</li>
         </ul>
 
@@ -193,8 +206,7 @@
 
     <main id="mainContent">
         <h1 id="pageTitle" style="margin-bottom: 20px;">Início</h1>
-        <div class="content-grid" id="grid">
-            </div>
+        <div class="content-grid" id="grid"></div>
     </main>
 
     <script>
@@ -210,7 +222,6 @@
         function toggleSidebar() {
             sidebar.classList.toggle('active');
             overlay.classList.toggle('active');
-            // Se fechar a sidebar, remove o painel inferior do DOM
             if (!sidebar.classList.contains('active')) {
                 removeBottomPanel();
             }
@@ -225,20 +236,29 @@
         }
 
         function createBottomPanel() {
+            if (document.getElementById('bottomPanel')) return;
+
             bottomPanel = document.createElement('div');
             bottomPanel.className = 'bottom-panel';
             bottomPanel.id = 'bottomPanel';
             bottomPanel.innerHTML = `
                 <p style="margin-bottom:10px; font-weight:bold">Arraste para a barra lateral:</p>
                 <div class="panel-grid">
-                    <div class="draggable-item" draggable="true" ondragstart="handleDragStart(event)">Vídeos</div>
-                    <div class="draggable-item" draggable="true" ondragstart="handleDragStart(event)">Chat</div>
-                    <div class="draggable-item" draggable="true" ondragstart="handleDragStart(event)">Feed</div>
-                    <div class="draggable-item" draggable="true" ondragstart="handleDragStart(event)">Loja</div>
-                    <div class="draggable-item" draggable="true" ondragstart="handleDragStart(event)">Comunidade</div>
+                    <div class="draggable-item" draggable="true">Vídeos</div>
+                    <div class="draggable-item" draggable="true">Chat</div>
+                    <div class="draggable-item" draggable="true">Feed</div>
+                    <div class="draggable-item" draggable="true">Loja</div>
+                    <div class="draggable-item" draggable="true">Comunidade</div>
                 </div>
             `;
             document.body.appendChild(bottomPanel);
+
+            // Adicionar eventos aos novos itens criados
+            const items = bottomPanel.querySelectorAll('.draggable-item');
+            items.forEach(item => {
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragend', handleDragEnd);
+            });
         }
 
         function removeBottomPanel() {
@@ -248,14 +268,33 @@
             }
         }
 
-        // --- Drag and Drop Logic ---
+        // --- Lógica de Drag and Drop Corrigida ---
 
         function handleDragStart(e) {
             e.dataTransfer.setData('text/plain', e.target.innerText);
+            e.dataTransfer.effectAllowed = "move";
+            e.target.style.opacity = "0.4";
         }
 
-        function handleDrop(e) {
+        function handleDragEnd(e) {
+            e.target.style.opacity = "1";
+            moduleList.classList.remove('drag-over');
+        }
+
+        // Eventos na lista (Dropzone)
+        moduleList.addEventListener('dragover', (e) => {
+            e.preventDefault(); // Necessário para permitir o drop
+            e.dataTransfer.dropEffect = "move";
+            moduleList.classList.add('drag-over');
+        });
+
+        moduleList.addEventListener('dragleave', () => {
+            moduleList.classList.remove('drag-over');
+        });
+
+        moduleList.addEventListener('drop', (e) => {
             e.preventDefault();
+            moduleList.classList.remove('drag-over');
             const moduleName = e.dataTransfer.getData('text/plain');
 
             if (moduleName && !activeModules.has(moduleName)) {
@@ -269,15 +308,14 @@
                 
                 changeContent(moduleName);
             }
-        }
+        });
 
         // --- UI Logic ---
 
         function changeContent(name) {
             pageTitle.innerText = name;
-            grid.innerHTML = ''; // Limpa grid
+            grid.innerHTML = ''; 
 
-            // Gerar 6 cards de exemplo
             for (let i = 1; i <= 6; i++) {
                 const card = document.createElement('div');
                 card.className = 'card';
@@ -292,7 +330,6 @@
             if(window.innerWidth < 768) toggleSidebar();
         }
 
-        // Inicializar com conteúdo
         changeContent('Início');
 
     </script>
