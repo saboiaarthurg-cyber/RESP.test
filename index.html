@@ -31,7 +31,6 @@ body {
   color: white;
   transition: 0.3s;
   padding: 20px;
-  z-index: 999;
 }
 
 #sidebar.active {
@@ -45,6 +44,21 @@ body {
   cursor: pointer;
 }
 
+/* BOTÃO ☰☰ (SÓ EXISTE COM SIDEBAR ABERTA) */
+#openModules {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  font-size: 20px;
+  cursor: pointer;
+  display: none;
+}
+
+#sidebar.active #openModules {
+  display: block;
+}
+
+/* MÓDULOS */
 .module {
   background: #333;
   padding: 12px;
@@ -53,16 +67,9 @@ body {
   cursor: pointer;
 }
 
-#openModules {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  cursor: pointer;
-}
-
 /* CONTEÚDO */
 #main {
-  padding: 80px 20px 120px; /* espaço pra barra */
+  padding: 80px 20px 100px;
 }
 
 .screen {
@@ -84,31 +91,23 @@ body {
   justify-content: center;
 }
 
-/* ===== BOTÃO FORÇADO ===== */
-#forceOpen {
-  position: fixed;
-  bottom: 80px;
-  right: 20px;
-  background: black;
-  color: white;
-  padding: 10px;
-  border-radius: 10px;
-  cursor: pointer;
-  z-index: 1000;
-}
-
-/* ===== BARRA ===== */
+/* ABA DE BAIXO */
 #bottomPanel {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 0; /* FORÇADO */
-  height: 70px;
+  bottom: -160px;
+  height: 160px;
   background: #222;
+  color: white;
+  padding: 20px;
   display: flex;
   gap: 10px;
-  padding: 10px;
-  z-index: 999;
+  transition: 0.3s;
+}
+
+#bottomPanel.active {
+  bottom: 0;
 }
 
 .bottom-item {
@@ -126,12 +125,14 @@ body {
 
 <div id="sidebar">
   <div id="closeBtn">✖</div>
+
   <h3>RESP</h3>
 
   <div id="modulesList">
     <div class="module" onclick="openScreen('home')">Início</div>
   </div>
 
+  <!-- BOTÃO QUE SÓ APARECE COM SIDEBAR -->
   <div id="openModules">☰☰</div>
 </div>
 
@@ -146,25 +147,34 @@ body {
   <div id="Chat" class="screen"></div>
 </div>
 
-<!-- BOTÃO TESTE -->
-<div id="forceOpen">Abrir</div>
-
-<!-- BARRA -->
 <div id="bottomPanel">
   <div class="bottom-item" draggable="true">Vídeos</div>
   <div class="bottom-item" draggable="true">Chat</div>
+  <div class="bottom-item" draggable="true">Feed</div>
 </div>
 
 <script>
 const sidebar = document.getElementById("sidebar");
+const panel = document.getElementById("bottomPanel");
 const modulesList = document.getElementById("modulesList");
 
-menuBtn.onclick = () => sidebar.classList.toggle("active");
-closeBtn.onclick = () => sidebar.classList.remove("active");
+menuBtn.onclick = () => {
+  sidebar.classList.toggle("active");
 
-// BOTÃO EXTRA (garantia)
-forceOpen.onclick = () => {
-  alert("A barra já está aparecendo embaixo 👇");
+  // FECHA A ABA DE BAIXO se fechar sidebar
+  if (!sidebar.classList.contains("active")) {
+    panel.classList.remove("active");
+  }
+};
+
+closeBtn.onclick = () => {
+  sidebar.classList.remove("active");
+  panel.classList.remove("active");
+};
+
+// ABRIR ABA DE BAIXO
+openModules.onclick = () => {
+  panel.classList.toggle("active");
 };
 
 // DRAG
@@ -200,6 +210,7 @@ function openScreen(name) {
   }
 
   sidebar.classList.remove("active");
+  panel.classList.remove("active");
 }
 </script>
 
