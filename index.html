@@ -14,9 +14,9 @@ body {
 /* BOTÃO MENU */
 #menuBtn {
   position: fixed;
-  top: 10px;
-  left: 10px;
-  font-size: 24px;
+  top: 15px;
+  left: 15px;
+  font-size: 26px;
   cursor: pointer;
   z-index: 1000;
 }
@@ -24,25 +24,35 @@ body {
 /* SIDEBAR */
 #sidebar {
   position: fixed;
-  left: -250px;
+  left: -260px;
   top: 0;
-  width: 250px;
+  width: 260px;
   height: 100%;
   background: #111;
   color: white;
   transition: 0.3s;
-  padding: 15px;
+  padding: 20px;
 }
 
 #sidebar.active {
   left: 0;
 }
 
+/* BOTÃO FECHAR */
+#closeBtn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  cursor: pointer;
+  font-size: 20px;
+}
+
 .module {
   background: #333;
-  padding: 10px;
-  margin: 10px 0;
+  padding: 12px;
+  margin: 12px 0;
   cursor: pointer;
+  border-radius: 8px;
 }
 
 /* BOTÃO DO SUBMENU */
@@ -56,8 +66,7 @@ body {
 
 /* CONTEÚDO */
 #main {
-  padding: 60px 20px;
-  transition: 0.3s;
+  padding: 80px 30px;
 }
 
 /* TELAS */
@@ -77,18 +86,20 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 12px;
 }
 
 /* PAINEL INFERIOR */
 #bottomPanel {
   position: fixed;
-  bottom: -200px;
+  bottom: -220px;
   left: 0;
   right: 0;
   background: #222;
   color: white;
-  padding: 15px;
+  padding: 20px;
   display: flex;
+  gap: 10px;
   transition: 0.3s;
 }
 
@@ -98,9 +109,9 @@ body {
 
 .bottom-item {
   background: #444;
-  margin-right: 10px;
-  padding: 10px;
+  padding: 12px;
   cursor: grab;
+  border-radius: 8px;
 }
 </style>
 </head>
@@ -112,20 +123,20 @@ body {
 
 <!-- SIDEBAR -->
 <div id="sidebar">
+  <div id="closeBtn">✖</div>
+
   <h3>RESP</h3>
 
   <div id="modulesList">
     <div class="module" onclick="openScreen('home')">Início</div>
   </div>
 
-  <!-- ☰☰ -->
   <div id="openModules">☰☰</div>
 </div>
 
 <!-- CONTEÚDO -->
 <div id="main">
 
-  <!-- TELA INICIAL -->
   <div id="home" class="screen active">
     <div class="card">Produto</div>
     <div class="card">Vídeo</div>
@@ -135,7 +146,6 @@ body {
     <div class="card">Post</div>
   </div>
 
-  <!-- TELAS DINÂMICAS -->
   <div id="Vídeos" class="screen"></div>
   <div id="Chat" class="screen"></div>
   <div id="Feed" class="screen"></div>
@@ -154,40 +164,45 @@ body {
 </div>
 
 <script>
-// ABRIR MENU
+// ELEMENTOS
 const menuBtn = document.getElementById("menuBtn");
 const sidebar = document.getElementById("sidebar");
+const panel = document.getElementById("bottomPanel");
+const openModules = document.getElementById("openModules");
+const closeBtn = document.getElementById("closeBtn");
+const modulesList = document.getElementById("modulesList");
 
+// ABRIR MENU
 menuBtn.onclick = () => {
   sidebar.classList.toggle("active");
 };
 
-// ABRIR PAINEL
-const openModules = document.getElementById("openModules");
-const panel = document.getElementById("bottomPanel");
+// FECHAR MENU
+closeBtn.onclick = () => {
+  sidebar.classList.remove("active");
+  panel.classList.remove("active");
+};
 
+// ABRIR PAINEL
 openModules.onclick = () => {
   panel.classList.toggle("active");
 };
 
 // DRAG
-const items = document.querySelectorAll('.bottom-item');
-const modulesList = document.getElementById('modulesList');
-
-items.forEach(item => {
+document.querySelectorAll('.bottom-item').forEach(item => {
   item.addEventListener('dragstart', e => {
     e.dataTransfer.setData('text', item.innerText);
   });
 });
 
-modulesList.addEventListener('dragover', e => {
+// PERMITIR DROP NA SIDEBAR INTEIRA
+sidebar.addEventListener('dragover', e => {
   e.preventDefault();
 });
 
-modulesList.addEventListener('drop', e => {
+sidebar.addEventListener('drop', e => {
   const data = e.dataTransfer.getData('text');
 
-  // evitar duplicar
   if ([...modulesList.children].some(el => el.innerText === data)) return;
 
   const newModule = document.createElement('div');
@@ -206,7 +221,6 @@ function openScreen(name) {
   if (screen) {
     screen.classList.add('active');
 
-    // conteúdo fake
     if (screen.innerHTML === "") {
       for (let i = 0; i < 6; i++) {
         let div = document.createElement("div");
@@ -216,6 +230,8 @@ function openScreen(name) {
       }
     }
   }
+
+  sidebar.classList.remove("active");
 }
 </script>
 
