@@ -12,9 +12,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
         
-        :root {
-            --primary: #065fd4;
-        }
+        :root { --primary: #065fd4; }
         
         * { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
         
@@ -35,380 +33,517 @@
         .main-content { background: #f1f1f1; }
         .dark .main-content { background: #111; }
         
-        .backdrop-blur { backdrop-filter: blur(16px); }
-        
         .progress-bar { height: 6px; background: #e5e7eb; border-radius: 9999px; overflow: hidden; }
         .dark .progress-bar { background: #333; }
     </style>
 </head>
 <body class="bg-[#f1f1f1] min-h-screen flex flex-col overflow-hidden dark:bg-[#111]">
 
-<!-- TELA DE LOGIN (mantida igual, mas com dark mode) -->
-<div id="login-screen" class="flex-1 flex items-center justify-center bg-white dark:bg-[#111]">
-    <div class="max-w-md w-full px-8 py-12 bg-white dark:bg-[#1a1a1a] rounded-3xl shadow-2xl">
-        <div class="flex items-center justify-center gap-3 mb-10">
-            <div class="w-12 h-12 bg-[#065fd4] text-white rounded-2xl flex items-center justify-center text-3xl shadow-inner">📱</div>
-            <h1 class="text-4xl font-semibold tracking-tighter text-gray-900 dark:text-white">RESP</h1>
-        </div>
-        <h2 class="text-2xl font-semibold text-center mb-2 dark:text-white">Bem-vindo de volta</h2>
-        <p class="text-gray-500 dark:text-gray-400 text-center mb-8">Entre para continuar sua rede personalizada</p>
-        
-        <button onclick="loginWithGoogle()" class="w-full flex items-center justify-center gap-3 bg-white dark:bg-[#1a1a1a] border border-gray-300 dark:border-gray-700 hover:border-gray-400 text-gray-700 dark:text-gray-300 font-medium py-4 rounded-3xl mb-4 text-base">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.51h5.92c-.25 1.22-.98 2.26-2.08 2.95v2.91h3.36c1.97-1.81 3.1-4.48 3.1-7.62z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.36-2.91c-.93.63-2.12 1-3.92 1-3.01 0-5.57-2.03-6.48-4.76H2.18v2.98C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.52 14.25c-.23-.69-.36-1.42-.36-2.25s.13-1.56.36-2.25V6.76H2.18C1.43 8.36 1 10.13 1 12s.43 3.64 1.18 5.24l3.34-2.99z"/><path fill="#EA4335" d="M12 5.38c1.66 0 3.14.57 4.3 1.69l3.23-3.23C17.46 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 6.76l3.34 2.99c.91-2.73 3.47-4.76 6.48-4.76z"/></svg>
-            Continuar com Google
-        </button>
-        
-        <div class="flex items-center gap-3 my-6">
-            <div class="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
-            <span class="text-gray-400 text-sm font-medium">ou</span>
-            <div class="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
-        </div>
-        
-        <div class="space-y-4">
-            <div>
-                <label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">E-mail</label>
-                <input id="email-input" type="email" class="w-full px-5 py-4 bg-gray-100 dark:bg-[#222] border border-transparent focus:border-[#065fd4] rounded-3xl text-base outline-none dark:text-white" placeholder="seu@email.com">
+    <!-- TELA DE LOGIN -->
+    <div id="login-screen" class="flex-1 flex items-center justify-center bg-white dark:bg-[#111]">
+        <div class="max-w-md w-full px-8 py-12 bg-white dark:bg-[#1a1a1a] rounded-3xl shadow-2xl">
+            <div class="flex items-center justify-center gap-3 mb-10">
+                <div class="w-12 h-12 bg-[#065fd4] text-white rounded-2xl flex items-center justify-center text-3xl shadow-inner">📱</div>
+                <h1 class="text-4xl font-semibold tracking-tighter text-gray-900 dark:text-white">RESP</h1>
             </div>
-            <div>
-                <label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">Senha</label>
-                <input id="password-input" type="password" class="w-full px-5 py-4 bg-gray-100 dark:bg-[#222] border border-transparent focus:border-[#065fd4] rounded-3xl text-base outline-none dark:text-white" placeholder="••••••••">
-            </div>
-            <button onclick="handleEmailLogin()" class="w-full bg-[#065fd4] hover:bg-[#054aa8] text-white font-semibold py-4 rounded-3xl text-base">Entrar com E-mail</button>
-        </div>
-    </div>
-</div>
-
-<!-- SETUP DE PERFIL -->
-<div id="setup-screen" class="hidden flex-1 flex items-center justify-center bg-white dark:bg-[#111] fixed inset-0 z-[9999]">
-    <div class="max-w-md w-full px-8 py-12 bg-white dark:bg-[#1a1a1a] rounded-3xl shadow-2xl text-center">
-        <div class="w-20 h-20 mx-auto bg-[#065fd4]/10 text-[#065fd4] rounded-3xl flex items-center justify-center text-5xl mb-6">👤</div>
-        <h2 class="text-3xl font-semibold mb-2 dark:text-white">Último passo!</h2>
-        <p class="text-gray-600 dark:text-gray-400 mb-8">Escolha seu nickname único</p>
-        
-        <input id="nickname-input" type="text" maxlength="20" class="w-full px-6 py-5 text-center text-2xl bg-gray-100 dark:bg-[#222] border border-transparent focus:border-[#065fd4] rounded-3xl outline-none mb-8 dark:text-white" placeholder="@seu_nick">
-        
-        <button onclick="saveNickname()" class="w-full bg-[#065fd4] text-white font-semibold py-5 rounded-3xl text-xl">Confirmar e entrar</button>
-        <p id="setup-error" class="text-red-500 text-sm mt-4 hidden"></p>
-    </div>
-</div>
-
-<!-- APP PRINCIPAL -->
-<div id="app-screen" class="hidden flex-1 flex overflow-hidden">
-    <!-- SIDEBAR -->
-    <div class="sidebar w-72 flex flex-col h-full border-r border-gray-100 dark:border-gray-800 py-6 px-4">
-        <div class="flex items-center gap-3 px-4 mb-8">
-            <div class="w-9 h-9 bg-[#065fd4] text-white rounded-2xl flex items-center justify-center text-3xl">📱</div>
-            <h1 class="text-3xl font-semibold tracking-[-1px] dark:text-white">RESP</h1>
-        </div>
-        
-        <div id="sidebar-modules" class="flex-1 px-2 space-y-1 overflow-y-auto"></div>
-        
-        <div onclick="toggleCustomizePanel()" class="mx-4 mt-auto flex items-center justify-center gap-3 bg-[#065fd4] text-white hover:bg-[#054aa8] font-medium py-4 rounded-3xl cursor-pointer text-base shadow-lg">
-            <span class="text-2xl">🛠️</span>
-            <span>Personalizar Barra</span>
-        </div>
-        
-        <div onclick="showUserMenu()" class="mt-6 mx-4 flex items-center gap-3 cursor-pointer">
-            <div id="user-avatar" class="w-9 h-9 bg-gray-200 dark:bg-gray-700 rounded-2xl flex items-center justify-center text-xl">👤</div>
-            <div class="flex-1 min-w-0">
-                <p id="user-nick-sidebar" class="font-semibold text-gray-900 dark:text-white truncate"></p>
-                <p id="user-email-sidebar" class="text-xs text-gray-400 truncate"></p>
-            </div>
-        </div>
-    </div>
-
-    <!-- CONTEÚDO PRINCIPAL -->
-    <div class="flex-1 flex flex-col main-content">
-        <div class="h-16 border-b bg-white/80 dark:bg-[#1a1a1a]/80 backdrop-blur flex items-center px-8 justify-between">
-            <div id="current-page-title" class="text-2xl font-semibold text-gray-900 dark:text-white">Início</div>
             
-            <div class="flex items-center gap-6">
-                <div onclick="switchToModule('inicio')" class="flex items-center gap-2 text-sm font-medium cursor-pointer dark:text-white">
-                    <span class="text-xl">🏠</span><span>Início</span>
+            <h2 class="text-2xl font-semibold text-center mb-2 dark:text-white">Bem-vindo de volta</h2>
+            <p class="text-gray-500 dark:text-gray-400 text-center mb-8">Entre para continuar sua rede personalizada</p>
+            
+            <button onclick="loginWithGoogle()" 
+                    class="w-full flex items-center justify-center gap-3 bg-white dark:bg-[#1a1a1a] border border-gray-300 dark:border-gray-700 hover:border-gray-400 text-gray-700 dark:text-gray-300 font-medium py-4 rounded-3xl mb-4 text-base">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.51h5.92c-.25 1.22-.98 2.26-2.08 2.95v2.91h3.36c1.97-1.81 3.1-4.48 3.1-7.62z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.36-2.91c-.93.63-2.12 1-3.92 1-3.01 0-5.57-2.03-6.48-4.76H2.18v2.98C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.52 14.25c-.23-.69-.36-1.42-.36-2.25s.13-1.56.36-2.25V6.76H2.18C1.43 8.36 1 10.13 1 12s.43 3.64 1.18 5.24l3.34-2.99z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.66 0 3.14.57 4.3 1.69l3.23-3.23C17.46 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 6.76l3.34 2.99c.91-2.73 3.47-4.76 6.48-4.76z"/>
+                </svg>
+                Continuar com Google
+            </button>
+            
+            <div class="flex items-center gap-3 my-6">
+                <div class="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
+                <span class="text-gray-400 text-sm font-medium">ou</span>
+                <div class="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">E-mail</label>
+                    <input id="email-input" type="email" class="w-full px-5 py-4 bg-gray-100 dark:bg-[#222] border border-transparent focus:border-[#065fd4] rounded-3xl text-base outline-none dark:text-white" placeholder="seu@email.com">
                 </div>
-                <div class="w-px h-6 bg-gray-200 dark:bg-gray-700"></div>
-                
-                <div class="relative">
-                    <input id="search-input" type="text" placeholder="Buscar na RESP..." class="bg-gray-100 dark:bg-[#222] border-0 focus:ring-2 focus:ring-[#065fd4] rounded-3xl pl-12 py-3 w-80 text-sm dark:text-white">
-                    <span class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400">🔎</span>
+                <div>
+                    <label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">Senha</label>
+                    <input id="password-input" type="password" class="w-full px-5 py-4 bg-gray-100 dark:bg-[#222] border border-transparent focus:border-[#065fd4] rounded-3xl text-base outline-none dark:text-white" placeholder="••••••••">
                 </div>
                 
-                <div onclick="showUserMenu()" id="header-avatar" class="w-8 h-8 bg-[#065fd4] text-white text-xl rounded-2xl flex items-center justify-center cursor-pointer"></div>
+                <button onclick="handleEmailLogin()" 
+                        class="w-full bg-[#065fd4] hover:bg-[#054aa8] text-white font-semibold py-4 rounded-3xl text-base">Entrar com E-mail</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETUP DE PERFIL -->
+    <div id="setup-screen" class="hidden flex-1 flex items-center justify-center bg-white dark:bg-[#111] fixed inset-0 z-[9999]">
+        <div class="max-w-md w-full px-8 py-12 bg-white dark:bg-[#1a1a1a] rounded-3xl shadow-2xl text-center">
+            <div class="w-20 h-20 mx-auto bg-[#065fd4]/10 text-[#065fd4] rounded-3xl flex items-center justify-center text-5xl mb-6">👤</div>
+            <h2 class="text-3xl font-semibold mb-2 dark:text-white">Último passo!</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-8">Escolha seu nickname único</p>
+            
+            <input id="nickname-input" type="text" maxlength="20" 
+                   class="w-full px-6 py-5 text-center text-2xl bg-gray-100 dark:bg-[#222] border border-transparent focus:border-[#065fd4] rounded-3xl outline-none mb-8 dark:text-white" 
+                   placeholder="@seu_nick">
+            
+            <button onclick="saveNickname()" 
+                    class="w-full bg-[#065fd4] text-white font-semibold py-5 rounded-3xl text-xl">Confirmar e entrar</button>
+            <p id="setup-error" class="text-red-500 text-sm mt-4 hidden"></p>
+        </div>
+    </div>
+
+    <!-- APP PRINCIPAL -->
+    <div id="app-screen" class="hidden flex-1 flex overflow-hidden">
+        <!-- SIDEBAR -->
+        <div class="sidebar w-72 flex flex-col h-full border-r border-gray-100 dark:border-gray-800 py-6 px-4">
+            <div class="flex items-center gap-3 px-4 mb-8">
+                <div class="w-9 h-9 bg-[#065fd4] text-white rounded-2xl flex items-center justify-center text-3xl">📱</div>
+                <h1 class="text-3xl font-semibold tracking-[-1px] dark:text-white">RESP</h1>
+            </div>
+            
+            <div id="sidebar-modules" class="flex-1 px-2 space-y-1 overflow-y-auto"></div>
+            
+            <div onclick="toggleCustomizePanel()" 
+                 class="mx-4 mt-auto flex items-center justify-center gap-3 bg-[#065fd4] text-white hover:bg-[#054aa8] font-medium py-4 rounded-3xl cursor-pointer text-base shadow-lg">
+                <span class="text-2xl">🛠️</span>
+                <span>Personalizar Barra</span>
+            </div>
+            
+            <div onclick="showUserMenu()" class="mt-6 mx-4 flex items-center gap-3 cursor-pointer">
+                <div id="user-avatar" class="w-9 h-9 bg-gray-200 dark:bg-gray-700 rounded-2xl flex items-center justify-center text-xl">👤</div>
+                <div class="flex-1 min-w-0">
+                    <p id="user-nick-sidebar" class="font-semibold text-gray-900 dark:text-white truncate"></p>
+                    <p id="user-email-sidebar" class="text-xs text-gray-400 truncate"></p>
+                </div>
             </div>
         </div>
         
-        <div id="main-content-area" class="flex-1 p-8 overflow-auto"></div>
-    </div>
-</div>
-
-<!-- PAINEL PERSONALIZAÇÃO -->
-<div onclick="if(event.target.id === 'customize-panel') toggleCustomizePanel()" id="customize-panel" class="hidden fixed inset-0 bg-black/60 z-[3000] flex items-end">
-    <div onclick="event.stopImmediatePropagation()" class="bg-black text-white w-full max-w-2xl mx-auto rounded-t-3xl panel-slide p-8">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-semibold">Personalize sua Barra Lateral</h2>
-            <button onclick="toggleCustomizePanel()" class="text-3xl leading-none">✕</button>
-        </div>
-        <p class="text-gray-400 mb-8">Arraste ou clique nos módulos</p>
-        <div id="available-modules" class="grid grid-cols-2 gap-4"></div>
-    </div>
-</div>
-
-<!-- MODAL UPLOAD VÍDEO (com barra de progresso) -->
-<div id="video-upload-modal" onclick="if(event.target.id === 'video-upload-modal') hideVideoModal()" class="hidden fixed inset-0 bg-black/70 z-[5000] flex items-center justify-center">
-    <div onclick="event.stopImmediatePropagation()" class="bg-white dark:bg-[#1a1a1a] rounded-3xl w-full max-w-lg p-8">
-        <h3 class="text-2xl font-semibold mb-6 dark:text-white">Enviar novo vídeo</h3>
-        
-        <div id="upload-dropzone" onclick="document.getElementById('video-file-input').click()" class="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-[#065fd4] rounded-3xl h-64 flex flex-col items-center justify-center cursor-pointer">
-            <span class="text-6xl mb-4">📤</span>
-            <p class="font-medium dark:text-white">Clique ou arraste um MP4 aqui</p>
-            <p class="text-xs text-gray-400 mt-1">Máximo 100MB • MP4 apenas</p>
-            <input type="file" id="video-file-input" accept="video/mp4" class="hidden" onchange="handleVideoUpload(event)">
-        </div>
-        
-        <div id="progress-container" class="hidden mt-6">
-            <div class="flex justify-between text-xs mb-2"><span class="dark:text-gray-400">Enviando...</span><span id="progress-text" class="font-medium">0%</span></div>
-            <div class="progress-bar"><div id="progress-bar" class="h-full bg-[#065fd4] w-0"></div></div>
-        </div>
-        
-        <div class="flex justify-end gap-4 mt-6">
-            <button onclick="hideVideoModal()" class="px-8 py-3 font-medium text-gray-600 dark:text-gray-400">Cancelar</button>
-            <button onclick="hideVideoModal()" class="px-8 py-3 bg-[#065fd4] text-white rounded-3xl font-medium">Feito</button>
-        </div>
-    </div>
-</div>
-
-<!-- MENU USUÁRIO -->
-<div id="user-menu" onclick="if(event.target.id === 'user-menu') hideUserMenu()" class="hidden fixed inset-0 z-[6000] bg-black/30 flex items-start justify-end pt-16 pr-8">
-    <div class="bg-white dark:bg-[#1a1a1a] rounded-3xl shadow-2xl py-3 w-64 text-sm">
-        <div onclick="toggleDarkMode()" class="px-6 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center gap-3">
-            <span class="text-xl">🌙</span>
-            <span>Modo Escuro</span>
-        </div>
-        <div onclick="logout()" class="px-6 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center gap-3">
-            <span class="text-xl">🚪</span>
-            <span>Sair da conta</span>
-        </div>
-    </div>
-</div>
-
-<script>
-// ==================== CONFIGURAÇÃO FIREBASE (mesma) ====================
-const firebaseConfig = {
-    apiKey: "AIzaSyAvZl2jk8i8n0e9844cxw6mGdCWXB6CZ_w",
-    authDomain: "resp-f1.firebaseapp.com",
-    projectId: "resp-f1",
-    storageBucket: "resp-f1.firebasestorage.app",
-    messagingSenderId: "616016136217",
-    appId: "1:616016136217:web:ec3642b797375ce0134288"
-};
-
-let app, auth, db, storage;
-function initFirebase() {
-    if (!app) {
-        app = firebase.initializeApp(firebaseConfig);
-        auth = firebase.auth();
-        db = firebase.firestore();
-        storage = firebase.storage();
-    }
-}
-
-// ==================== VARIÁVEIS GLOBAIS ====================
-let currentUser = null;
-let currentNick = null;
-let customModules = [];
-let activeModule = 'inicio';
-let isDarkMode = false;
-
-const availableModulesList = [
-    { id: 'videos', name: 'Vídeos', icon: '📹', color: '#065fd4' },
-    { id: 'chat', name: 'Chat Global', icon: '💬', color: '#10b981' },
-    { id: 'mensagens', name: 'Mensagens', icon: '✉️', color: '#8b5cf6' },
-    { id: 'loja', name: 'Loja', icon: '🛒', color: '#f59e0b' },
-    { id: 'explorar', name: 'Explorar', icon: '🔎', color: '#ec4899' }
-];
-
-// ==================== AUTENTICAÇÃO E SETUP (com nickname único) ====================
-async function saveNickname() {
-    const nickInput = document.getElementById('nickname-input').value.trim().toLowerCase();
-    if (!nickInput || nickInput.length < 3) {
-        document.getElementById('setup-error').textContent = "Nickname deve ter pelo menos 3 caracteres";
-        document.getElementById('setup-error').classList.remove('hidden');
-        return;
-    }
-
-    const userRef = db.collection('users').doc(currentUser.uid);
-    const nickQuery = await db.collection('users').where('nick', '==', nickInput).get();
-
-    if (!nickQuery.empty) {
-        document.getElementById('setup-error').textContent = "Esse nickname já está em uso";
-        document.getElementById('setup-error').classList.remove('hidden');
-        return;
-    }
-
-    try {
-        await userRef.set({ nick: nickInput, email: currentUser.email, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-        currentNick = nickInput;
-        document.getElementById('setup-screen').classList.add('hidden');
-        enterMainApp();
-    } catch (e) { alert("Erro ao salvar nickname"); }
-}
-
-// ==================== DARK MODE ====================
-function toggleDarkMode() {
-    isDarkMode = !isDarkMode;
-    document.documentElement.classList.toggle('dark', isDarkMode);
-    hideUserMenu();
-}
-
-// ==================== UPLOAD DE VÍDEO COM PROGRESSO ====================
-async function handleVideoUpload(e) {
-    const file = e.target.files[0];
-    if (!file || file.type !== 'video/mp4') return alert("Apenas MP4");
-
-    hideVideoModal();
-    const progressContainer = document.getElementById('progress-container');
-    progressContainer.classList.remove('hidden');
-
-    const storageRef = storage.ref(`videos/${currentUser.uid}/${Date.now()}_${file.name}`);
-    const task = storageRef.put(file);
-
-    task.on('state_changed', 
-        (snapshot) => {
-            const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-            document.getElementById('progress-bar').style.width = progress + '%';
-            document.getElementById('progress-text').textContent = progress + '%';
-        },
-        (error) => console.error(error),
-        async () => {
-            const downloadURL = await storageRef.getDownloadURL();
-            await db.collection('videos').add({
-                uid: currentUser.uid,
-                nick: currentNick,
-                url: downloadURL,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                likes: [],
-                commentsCount: 0
-            });
-            progressContainer.classList.add('hidden');
-            alert("✅ Vídeo enviado com sucesso!");
-        }
-    );
-}
-
-// ==================== VÍDEOS COM LIKES E COMENTÁRIOS ====================
-function loadVideosRealTime() {
-    const grid = document.getElementById('videos-grid');
-    db.collection('videos').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
-        grid.innerHTML = '';
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const videoId = doc.id;
-            const isLiked = data.likes && data.likes.includes(currentUser.uid);
-
-            const html = `
-            <div class="bg-white dark:bg-[#1a1a1a] rounded-3xl overflow-hidden">
-                <video src="${data.url}" controls class="w-full aspect-video object-cover"></video>
-                <div class="p-4">
-                    <div class="flex items-center justify-between">
-                        <p class="font-medium dark:text-white">@${data.nick}</p>
-                        <button onclick="toggleLike('${videoId}', ${isLiked})" class="flex items-center gap-1 text-xl ${isLiked ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}">❤️ <span class="text-sm">${data.likes ? data.likes.length : 0}</span></button>
+        <!-- CONTEÚDO PRINCIPAL -->
+        <div class="flex-1 flex flex-col main-content">
+            <div class="h-16 border-b bg-white/80 dark:bg-[#1a1a1a]/80 backdrop-blur flex items-center px-8 justify-between">
+                <div id="current-page-title" class="text-2xl font-semibold text-gray-900 dark:text-white">Início</div>
+                
+                <div class="flex items-center gap-6">
+                    <div onclick="switchToModule('inicio')" class="flex items-center gap-2 text-sm font-medium cursor-pointer dark:text-white">
+                        <span class="text-xl">🏠</span><span>Início</span>
                     </div>
-                    <button onclick="openCommentsModal('${videoId}')" class="text-xs text-gray-500 dark:text-gray-400 mt-3">Ver comentários (${data.commentsCount || 0})</button>
+                    <div class="w-px h-6 bg-gray-200 dark:bg-gray-700"></div>
+                    
+                    <div class="relative">
+                        <input id="search-input" type="text" placeholder="Buscar na RESP..." 
+                               class="bg-gray-100 dark:bg-[#222] border-0 focus:ring-2 focus:ring-[#065fd4] rounded-3xl pl-12 py-3 w-80 text-sm dark:text-white">
+                        <span class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400">🔎</span>
+                    </div>
+                    
+                    <div onclick="showUserMenu()" id="header-avatar" class="w-8 h-8 bg-[#065fd4] text-white text-xl rounded-2xl flex items-center justify-center cursor-pointer"></div>
                 </div>
-            </div>`;
-            grid.innerHTML += html;
-        });
-    });
-}
-
-async function toggleLike(videoId, isLiked) {
-    const videoRef = db.collection('videos').doc(videoId);
-    if (isLiked) {
-        await videoRef.update({ likes: firebase.firestore.FieldValue.arrayRemove(currentUser.uid) });
-    } else {
-        await videoRef.update({ likes: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) });
-    }
-}
-
-// Modal de comentários (simples mas funcional)
-function openCommentsModal(videoId) {
-    // Aqui você pode expandir com um modal completo de comentários.
-    // Por enquanto mostro um alert placeholder. Se quiser o modal completo, avise que eu adiciono na próxima versão.
-    alert("🔧 Comentários em desenvolvimento (próxima atualização)");
-    // Exemplo rápido: você pode criar um modal dinâmico aqui se quiser.
-}
-
-// ==================== CHAT PRIVADO (Mensagens) ====================
-function renderMensagensContent() {
-    return `
-    <div class="max-w-2xl mx-auto">
-        <h2 class="text-3xl font-semibold mb-6 dark:text-white">Mensagens Privadas</h2>
-        <div class="bg-white dark:bg-[#1a1a1a] rounded-3xl p-6 mb-8">
-            <input id="dm-nick-input" placeholder="Digite o @nickname da pessoa" class="w-full px-6 py-4 bg-gray-100 dark:bg-[#222] rounded-3xl outline-none dark:text-white">
-            <button onclick="sendChatRequest()" class="mt-4 w-full bg-[#065fd4] text-white py-4 rounded-3xl">Enviar pedido de conversa</button>
-        </div>
-        <p class="text-gray-500 dark:text-gray-400 text-center">Seus pedidos de conversa aparecerão aqui em tempo real.</p>
-    </div>`;
-}
-
-async function sendChatRequest() {
-    const nick = document.getElementById('dm-nick-input').value.trim().toLowerCase();
-    if (!nick) return;
-    alert("Pedido de conversa enviado para @" + nick + " (funcionalidade completa em breve com notificação real-time)");
-    // Aqui seria criado um documento em "chat_requests"
-}
-
-// ==================== RENDERIZAÇÃO E NAVEGAÇÃO (atualizado) ====================
-function renderMainContent(moduleId) {
-    const area = document.getElementById('main-content-area');
-    document.getElementById('current-page-title').textContent = moduleId === 'inicio' ? 'Início' : availableModulesList.find(m => m.id === moduleId)?.name || 'Página';
-
-    area.innerHTML = '';
-
-    if (moduleId === 'inicio') {
-        area.innerHTML = document.getElementById('inicio-content') ? document.getElementById('inicio-content').innerHTML : `<h2 class="text-4xl font-semibold dark:text-white">Olá, ${currentNick}!</h2>`;
-    } 
-    else if (moduleId === 'videos') {
-        area.innerHTML = `
-            <div class="flex justify-between items-baseline mb-6">
-                <h2 class="text-3xl font-semibold dark:text-white">Vídeos da comunidade</h2>
-                <button onclick="showVideoUploadModal()" class="flex items-center gap-2 bg-[#065fd4] text-white px-6 py-3 rounded-3xl text-sm font-medium">📤 ENVIAR VÍDEO</button>
             </div>
-            <div id="videos-grid" class="video-grid grid grid-cols-1 md:grid-cols-3 gap-6"></div>`;
-        loadVideosRealTime();
-    } 
-    else if (moduleId === 'chat') {
-        // chat global mantido igual
-        area.innerHTML = `... (chat global igual ao anterior, sem emojis extras) ...`;
-        loadChatRealTime();
-    } 
-    else if (moduleId === 'mensagens') {
-        area.innerHTML = renderMensagensContent();
-    } 
-    else {
-        area.innerHTML = `<div class="text-center py-20"><h2 class="text-4xl font-semibold dark:text-white">${availableModulesList.find(m => m.id === moduleId)?.name}</h2><p class="text-gray-500 dark:text-gray-400">Em breve...</p></div>`;
-    }
-}
+            
+            <div id="main-content-area" class="flex-1 p-8 overflow-auto"></div>
+        </div>
+    </div>
 
-function showVideoUploadModal() {
-    document.getElementById('video-upload-modal').classList.remove('hidden');
-    document.getElementById('progress-container').classList.add('hidden');
-}
+    <!-- PAINEL DE PERSONALIZAÇÃO -->
+    <div onclick="if(event.target.id === 'customize-panel') toggleCustomizePanel()" 
+         id="customize-panel" 
+         class="hidden fixed inset-0 bg-black/60 z-[3000] flex items-end">
+        <div onclick="event.stopImmediatePropagation()" 
+             class="bg-black text-white w-full max-w-2xl mx-auto rounded-t-3xl panel-slide p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-semibold">Personalize sua Barra Lateral</h2>
+                <button onclick="toggleCustomizePanel()" class="text-3xl leading-none">✕</button>
+            </div>
+            <p class="text-gray-400 mb-8">Clique nos módulos para adicionar</p>
+            <div id="available-modules" class="grid grid-cols-2 gap-4"></div>
+        </div>
+    </div>
 
-function hideVideoModal() {
-    document.getElementById('video-upload-modal').classList.add('hidden');
-}
+    <!-- MODAL UPLOAD DE VÍDEO -->
+    <div id="video-upload-modal" onclick="if(event.target.id === 'video-upload-modal') hideVideoModal()" 
+         class="hidden fixed inset-0 bg-black/70 z-[5000] flex items-center justify-center">
+        <div onclick="event.stopImmediatePropagation()" class="bg-white dark:bg-[#1a1a1a] rounded-3xl w-full max-w-lg p-8">
+            <h3 class="text-2xl font-semibold mb-6 dark:text-white">Enviar novo vídeo</h3>
+            
+            <div id="upload-dropzone" 
+                 onclick="document.getElementById('video-file-input').click()"
+                 class="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-[#065fd4] rounded-3xl h-64 flex flex-col items-center justify-center cursor-pointer">
+                <span class="text-6xl mb-4">📤</span>
+                <p class="font-medium dark:text-white">Clique ou arraste um MP4 aqui</p>
+                <p class="text-xs text-gray-400 mt-1">Máximo 100MB • MP4 apenas</p>
+                <input type="file" id="video-file-input" accept="video/mp4" class="hidden" onchange="handleVideoUpload(event)">
+            </div>
+            
+            <div id="progress-container" class="hidden mt-6">
+                <div class="flex justify-between text-xs mb-2 dark:text-gray-400">
+                    <span>Enviando...</span>
+                    <span id="progress-text">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="progress-bar" class="h-full bg-[#065fd4] w-0"></div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-4 mt-6">
+                <button onclick="hideVideoModal()" class="px-8 py-3 font-medium text-gray-600 dark:text-gray-400">Cancelar</button>
+                <button onclick="hideVideoModal()" class="px-8 py-3 bg-[#065fd4] text-white rounded-3xl font-medium">Feito</button>
+            </div>
+        </div>
+    </div>
 
-// ==================== INICIALIZAÇÃO ====================
-function initializeRESP() {
-    console.log('%c🚀 RESP V6.0 - Tudo atualizado!', 'background:#065fd4;color:white;padding:4px 8px;border-radius:8px');
-    initFirebase();
-    window.onload = () => {
-        // seu código de auth.onAuthStateChanged continua igual...
-    };
-}
+    <!-- MENU DO USUÁRIO -->
+    <div id="user-menu" onclick="if(event.target.id === 'user-menu') hideUserMenu()" 
+         class="hidden fixed inset-0 z-[6000] bg-black/30 flex items-start justify-end pt-16 pr-8">
+        <div class="bg-white dark:bg-[#1a1a1a] rounded-3xl shadow-2xl py-3 w-64 text-sm">
+            <div onclick="toggleDarkMode()" class="px-6 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center gap-3">
+                <span class="text-xl">🌙</span>
+                <span>Modo Escuro</span>
+            </div>
+            <div onclick="logout()" class="px-6 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center gap-3">
+                <span class="text-xl">🚪</span>
+                <span>Sair da conta</span>
+            </div>
+        </div>
+    </div>
 
-initializeRESP();
-</script>
+    <script>
+        // ==================== CONFIGURAÇÃO FIREBASE ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAvZl2jk8i8n0e9844cxw6mGdCWXB6CZ_w",
+            authDomain: "resp-f1.firebaseapp.com",
+            projectId: "resp-f1",
+            storageBucket: "resp-f1.firebasestorage.app",
+            messagingSenderId: "616016136217",
+            appId: "1:616016136217:web:ec3642b797375ce0134288"
+        };
+
+        let app, auth, db, storage;
+        let currentUser = null;
+        let currentNick = null;
+        let customModules = [];
+        let activeModule = 'inicio';
+        let isDarkMode = false;
+
+        const availableModulesList = [
+            { id: 'videos', name: 'Vídeos', icon: '📹' },
+            { id: 'chat', name: 'Chat Global', icon: '💬' },
+            { id: 'mensagens', name: 'Mensagens', icon: '✉️' },
+            { id: 'explorar', name: 'Explorar', icon: '🔎' }
+        ];
+
+        function initFirebase() {
+            if (!app) {
+                try {
+                    app = firebase.initializeApp(firebaseConfig);
+                    auth = firebase.auth();
+                    db = firebase.firestore();
+                    storage = firebase.storage();
+                    console.log('%c✅ Firebase inicializado com sucesso', 'color:#065fd4; font-weight:600');
+                } catch (e) {
+                    console.error("Erro ao inicializar Firebase:", e);
+                }
+            }
+        }
+
+        // ==================== LOGIN ====================
+        async function loginWithGoogle() {
+            initFirebase();
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                const result = await auth.signInWithPopup(provider);
+                handleAuthSuccess(result.user);
+            } catch (error) {
+                console.error("Google login error:", error);
+                alert("Erro no Google: " + (error.message || "Tente novamente"));
+            }
+        }
+
+        async function handleEmailLogin() {
+            initFirebase();
+            const email = document.getElementById('email-input').value.trim();
+            const password = document.getElementById('password-input').value;
+
+            if (!email || !password) {
+                alert("Preencha e-mail e senha");
+                return;
+            }
+
+            try {
+                let result;
+                try {
+                    result = await auth.signInWithEmailAndPassword(email, password);
+                } catch (err) {
+                    if (err.code === 'auth/user-not-found') {
+                        result = await auth.createUserWithEmailAndPassword(email, password);
+                    } else {
+                        throw err;
+                    }
+                }
+                handleAuthSuccess(result.user);
+            } catch (error) {
+                console.error("Login error:", error);
+                let msg = "Erro no login.";
+                if (error.code === 'auth/invalid-email') msg = "E-mail inválido.";
+                else if (error.code === 'auth/weak-password') msg = "Senha muito fraca (mínimo 6 caracteres).";
+                else if (error.code === 'auth/wrong-password') msg = "Senha incorreta.";
+                alert(msg);
+            }
+        }
+
+        function handleAuthSuccess(user) {
+            currentUser = user;
+            document.getElementById('login-screen').classList.add('hidden');
+            checkProfileSetup();
+        }
+
+        // ==================== SETUP NICKNAME ====================
+        async function checkProfileSetup() {
+            initFirebase();
+            const userRef = db.collection('users').doc(currentUser.uid);
+            const doc = await userRef.get();
+
+            if (doc.exists && doc.data().nick) {
+                currentNick = doc.data().nick;
+                enterMainApp();
+            } else {
+                document.getElementById('setup-screen').classList.remove('hidden');
+                document.getElementById('nickname-input').focus();
+            }
+        }
+
+        async function saveNickname() {
+            const nickInput = document.getElementById('nickname-input').value.trim().toLowerCase();
+            const errorEl = document.getElementById('setup-error');
+
+            if (!nickInput || nickInput.length < 3) {
+                errorEl.textContent = "Nickname deve ter pelo menos 3 caracteres";
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const nickQuery = await db.collection('users').where('nick', '==', nickInput).get();
+                if (!nickQuery.empty) {
+                    errorEl.textContent = "Esse nickname já está em uso. Escolha outro.";
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
+
+                await db.collection('users').doc(currentUser.uid).set({
+                    nick: nickInput,
+                    email: currentUser.email,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                currentNick = nickInput;
+                document.getElementById('setup-screen').classList.add('hidden');
+                enterMainApp();
+            } catch (e) {
+                console.error(e);
+                errorEl.textContent = "Erro ao salvar. Tente novamente.";
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        // ==================== ENTRAR NO APP ====================
+        function enterMainApp() {
+            document.getElementById('app-screen').classList.remove('hidden');
+            document.getElementById('user-nick-sidebar').textContent = currentNick || '@' + currentUser.email.split('@')[0];
+            document.getElementById('user-email-sidebar').textContent = currentUser.email;
+
+            loadCustomModulesRealTime();
+            renderMainContent('inicio');
+        }
+
+        // ==================== SIDEBAR ====================
+        function loadCustomModulesRealTime() {
+            const userRef = db.collection('users').doc(currentUser.uid);
+            userRef.onSnapshot((doc) => {
+                customModules = doc.exists ? (doc.data().customModules || []) : [];
+                renderSidebar();
+            });
+        }
+
+        function renderSidebar() {
+            const container = document.getElementById('sidebar-modules');
+            container.innerHTML = `
+                <div onclick="switchToModule('inicio')" 
+                     class="module-item flex items-center gap-4 px-5 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer ${activeModule === 'inicio' ? 'bg-gray-100 dark:bg-gray-700' : ''}">
+                    <span class="text-2xl">🏠</span>
+                    <span class="font-medium text-lg dark:text-white">Início</span>
+                </div>`;
+
+            customModules.forEach((moduleId) => {
+                const mod = availableModulesList.find(m => m.id === moduleId);
+                if (!mod) return;
+                const el = document.createElement('div');
+                el.className = `module-item flex items-center gap-4 px-5 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer ${activeModule === moduleId ? 'bg-gray-100 dark:bg-gray-700' : ''}`;
+                el.innerHTML = `<span class="text-2xl">${mod.icon}</span><span class="font-medium text-lg dark:text-white">${mod.name}</span>`;
+                el.onclick = () => switchToModule(moduleId);
+                container.appendChild(el);
+            });
+        }
+
+        // ==================== NAVEGAÇÃO ====================
+        function switchToModule(moduleId) {
+            activeModule = moduleId;
+            renderSidebar();
+            renderMainContent(moduleId);
+        }
+
+        function renderMainContent(moduleId) {
+            const area = document.getElementById('main-content-area');
+            document.getElementById('current-page-title').textContent = moduleId === 'inicio' ? 'Início' : 
+                availableModulesList.find(m => m.id === moduleId)?.name || 'Página';
+
+            area.innerHTML = '';
+
+            if (moduleId === 'inicio') {
+                area.innerHTML = `
+                    <h2 class="text-4xl font-semibold mb-2 dark:text-white">Olá, <span class="text-[#065fd4]">${currentNick}</span>!</h2>
+                    <p class="text-gray-500 dark:text-gray-400 mb-8">O que vamos fazer hoje?</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div onclick="switchToModule('videos')" class="bg-white dark:bg-[#1a1a1a] rounded-3xl p-6 hover:shadow-xl cursor-pointer">
+                            <div class="text-4xl mb-4">📹</div>
+                            <h3 class="font-semibold text-xl dark:text-white">Vídeos</h3>
+                        </div>
+                        <div onclick="switchToModule('chat')" class="bg-white dark:bg-[#1a1a1a] rounded-3xl p-6 hover:shadow-xl cursor-pointer">
+                            <div class="text-4xl mb-4">💬</div>
+                            <h3 class="font-semibold text-xl dark:text-white">Chat Global</h3>
+                        </div>
+                        <div onclick="switchToModule('mensagens')" class="bg-white dark:bg-[#1a1a1a] rounded-3xl p-6 hover:shadow-xl cursor-pointer">
+                            <div class="text-4xl mb-4">✉️</div>
+                            <h3 class="font-semibold text-xl dark:text-white">Mensagens</h3>
+                        </div>
+                    </div>`;
+            } 
+            else if (moduleId === 'videos') {
+                area.innerHTML = `
+                    <div class="flex justify-between items-baseline mb-6">
+                        <h2 class="text-3xl font-semibold dark:text-white">Vídeos da comunidade</h2>
+                        <button onclick="showVideoUploadModal()" class="flex items-center gap-2 bg-[#065fd4] text-white px-6 py-3 rounded-3xl text-sm font-medium">📤 Enviar Vídeo</button>
+                    </div>
+                    <div id="videos-grid" class="video-grid grid grid-cols-1 md:grid-cols-3 gap-6"></div>`;
+                loadVideosRealTime();
+            } 
+            else {
+                area.innerHTML = `<div class="text-center py-20"><h2 class="text-4xl font-semibold dark:text-white">${availableModulesList.find(m => m.id === moduleId)?.name || 'Módulo'}</h2><p class="text-gray-500 dark:text-gray-400">Em breve...</p></div>`;
+            }
+        }
+
+        // ==================== VÍDEOS ====================
+        function showVideoUploadModal() {
+            document.getElementById('video-upload-modal').classList.remove('hidden');
+            document.getElementById('progress-container').classList.add('hidden');
+        }
+
+        function hideVideoModal() {
+            document.getElementById('video-upload-modal').classList.add('hidden');
+        }
+
+        async function handleVideoUpload(e) {
+            const file = e.target.files[0];
+            if (!file || file.type !== 'video/mp4') {
+                alert("Apenas arquivos MP4 são permitidos");
+                return;
+            }
+            hideVideoModal();
+
+            const progressContainer = document.getElementById('progress-container');
+            progressContainer.classList.remove('hidden');
+
+            const storageRef = storage.ref(`videos/${currentUser.uid}/${Date.now()}_${file.name}`);
+            const task = storageRef.put(file);
+
+            task.on('state_changed', 
+                (snapshot) => {
+                    const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+                    document.getElementById('progress-bar').style.width = progress + '%';
+                    document.getElementById('progress-text').textContent = progress + '%';
+                },
+                (error) => {
+                    console.error(error);
+                    alert("Erro no upload");
+                },
+                async () => {
+                    const downloadURL = await storageRef.getDownloadURL();
+                    await db.collection('videos').add({
+                        uid: currentUser.uid,
+                        nick: currentNick,
+                        url: downloadURL,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    document.getElementById('progress-container').classList.add('hidden');
+                    alert("✅ Vídeo enviado com sucesso!");
+                }
+            );
+        }
+
+        function loadVideosRealTime() {
+            const grid = document.getElementById('videos-grid');
+            db.collection('videos').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
+                grid.innerHTML = '';
+                if (snapshot.empty) {
+                    grid.innerHTML = `<p class="col-span-3 text-center py-12 text-gray-400">Nenhum vídeo ainda. Seja o primeiro!</p>`;
+                    return;
+                }
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    grid.innerHTML += `
+                        <div class="bg-white dark:bg-[#1a1a1a] rounded-3xl overflow-hidden">
+                            <video src="${data.url}" controls class="w-full aspect-video object-cover"></video>
+                            <div class="p-4">
+                                <p class="font-medium dark:text-white">@${data.nick}</p>
+                                <p class="text-xs text-gray-400">${data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString('pt-BR') : ''}</p>
+                            </div>
+                        </div>`;
+                });
+            });
+        }
+
+        // ==================== OUTRAS FUNÇÕES ====================
+        function toggleCustomizePanel() {
+            const panel = document.getElementById('customize-panel');
+            panel.classList.toggle('hidden');
+        }
+
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            document.documentElement.classList.toggle('dark', isDarkMode);
+            hideUserMenu();
+        }
+
+        function showUserMenu() {
+            document.getElementById('user-menu').classList.remove('hidden');
+        }
+
+        function hideUserMenu() {
+            document.getElementById('user-menu').classList.add('hidden');
+        }
+
+        function logout() {
+            if (auth) auth.signOut();
+            location.reload();
+        }
+
+        // ==================== INICIALIZAÇÃO ====================
+        function initializeRESP() {
+            console.log('%c🚀 RESP V6.1 - Pronto para usar', 'background:#065fd4;color:white;padding:4px 8px;border-radius:6px');
+            initFirebase();
+
+            auth.onAuthStateChanged((user) => {
+                if (user) currentUser = user;
+            });
+        }
+
+        window.onload = initializeRESP;
+    </script>
 </body>
 </html>
