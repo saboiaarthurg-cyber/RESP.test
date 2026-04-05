@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RESP – Plataforma Definitiva</title>
+    <title>RESP - Sistema de Sincronização em Tempo Real</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -12,197 +12,184 @@
 
     <style>
         :root { 
-            --primary: #065fd4; --bg: #f9f9f9; --text: #0f0f0f; 
-            --border: #e5e5e5; --danger: #cc0000; --sidebar-w: 280px;
+            --primary: #065fd4; --bg: #f1f1f1; --side: #ffffff; 
+            --text: #0f0f0f; --border: #e0e0e0; --sidebar-w: 280px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; width: 100vw; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
 
-        /* --- TELAS DE AUTH E SETUP --- */
-        .full-overlay { 
-            position: fixed; inset: 0; background: white; z-index: 10000; 
+        /* --- TELAS DE LOGIN E SETUP --- */
+        .overlay-full { 
+            position: fixed; inset: 0; background: white; z-index: 9999; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; 
         }
-        .hidden { display: none !important; }
-        
-        .card { 
-            background: white; padding: 40px; border-radius: 28px; 
-            box-shadow: 0 15px 50px rgba(0,0,0,0.1); max-width: 450px; width: 100%; 
+        .card-auth { 
+            background: white; padding: 40px; border-radius: 30px; 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1); max-width: 420px; width: 100%; text-align: center;
         }
-
-        .input-group { margin-bottom: 15px; text-align: left; width: 100%; }
         input { 
-            width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #ddd; 
-            font-size: 16px; outline: none; transition: 0.2s;
+            width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 12px; 
+            border: 1px solid #ddd; font-size: 16px; outline: none;
         }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(6,95,212,0.1); }
+        .hidden { display: none !important; }
 
-        /* --- LAYOUT --- */
+        /* --- INTERFACE PRINCIPAL --- */
         header { 
-            height: 60px; background: white; display: flex; align-items: center; 
+            height: 64px; background: white; display: flex; align-items: center; 
             padding: 0 20px; border-bottom: 1px solid var(--border); 
             position: fixed; width: 100%; z-index: 1000; justify-content: space-between; 
         }
 
         .sidebar { 
             position: fixed; left: calc(-1 * var(--sidebar-w)); top: 0; 
-            width: var(--sidebar-w); height: 100%; background: white; 
-            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 2000; 
-            padding: 80px 15px 20px; border-right: 1px solid var(--border); 
+            width: var(--sidebar-w); height: 100%; background: var(--side); 
+            transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 2000; 
+            padding: 85px 15px 20px; border-right: 1px solid var(--border); 
             display: flex; flex-direction: column; 
         }
-        .sidebar.active { left: 0; box-shadow: 15px 0 40px rgba(0,0,0,0.1); }
+        .sidebar.active { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.1); }
 
-        /* ÁREA DE LISTAGEM E DROP */
-        #moduleList { 
-            flex-grow: 1; list-style: none; padding: 10px; border: 2px dashed transparent; 
-            border-radius: 20px; overflow-y: auto;
+        #moduleList { flex-grow: 1; list-style: none; padding: 5px; overflow-y: auto; }
+        #moduleList.drag-over { background: #f0f7ff; border: 2px dashed var(--primary); border-radius: 15px; }
+
+        .item-menu { 
+            padding: 18px; border-radius: 15px; cursor: pointer; margin-bottom: 10px; 
+            background: #f8f8f8; font-weight: bold; text-align: center; 
+            transition: 0.3s; border: 1px solid transparent;
         }
-        #moduleList.drag-over { border-color: var(--primary); background: #f0f7ff; }
+        .item-menu:hover { background: #eee; transform: translateX(5px); border-color: #ccc; }
 
-        .module-item { 
-            padding: 16px; border-radius: 14px; cursor: pointer; margin-bottom: 10px; 
-            background: #f2f2f2; font-weight: 600; text-align: center; border: 1px solid transparent;
+        /* BOTÃO DE PERSONALIZAR (ESTILO SIDEBAR) */
+        .btn-trigger-custom {
+            margin-top: auto; padding: 20px; background: #000; color: #fff; border-radius: 18px;
+            cursor: pointer; text-align: center; font-weight: 900; letter-spacing: 1px;
         }
 
-        .btn-custom-trigger {
-            margin-top: auto; padding: 18px; background: #111; color: white; border-radius: 15px;
-            cursor: pointer; text-align: center; font-weight: bold; font-size: 14px;
-        }
-
-        /* --- PAINEL INFERIOR --- */
-        #dragPanel { 
-            position: fixed; bottom: -200px; left: 0; width: 100%; background: #111; 
-            color: white; padding: 30px; display: flex; gap: 15px; 
+        /* --- PAINEL DE PERSONALIZAÇÃO (O PRETO) --- */
+        #customPanel { 
+            position: fixed; bottom: -250px; left: 0; width: 100%; background: #000; 
+            color: white; padding: 40px; display: flex; gap: 20px; 
             justify-content: center; z-index: 3000; align-items: center;
-            transition: 0.6s cubic-bezier(0.19, 1, 0.22, 1); border-radius: 30px 30px 0 0;
+            transition: 0.7s cubic-bezier(0.19, 1, 0.22, 1); border-radius: 40px 40px 0 0;
         }
-        #dragPanel.visible { bottom: 0; }
+        #customPanel.visible { bottom: 0; }
         
-        .drag-box { 
-            padding: 15px 25px; background: #222; border-radius: 12px; cursor: grab; 
-            font-weight: bold; border: 1px solid #333; transition: 0.2s;
+        .box-mod { 
+            padding: 20px 30px; background: #1a1a1a; border-radius: 15px; cursor: pointer; 
+            font-weight: bold; border: 2px solid #333; transition: 0.3s; text-transform: uppercase;
         }
-        .drag-box:hover { background: #333; transform: translateY(-5px); border-color: var(--primary); }
+        .box-mod:hover { background: var(--primary); border-color: white; transform: scale(1.1); }
 
         /* --- CONTEÚDO --- */
-        main { padding: 80px 20px; height: 100vh; overflow-y: auto; width: 100%; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        main { padding: 90px 30px; height: 100vh; overflow-y: auto; transition: 0.5s; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
-        /* CHAT */
-        #chatContainer { height: 75vh; display: flex; flex-direction: column; background: white; border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
-        #msgBox { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-        .m { padding: 12px 18px; border-radius: 20px; max-width: 75%; font-size: 15px; line-height: 1.4; }
-        .m.me { align-self: flex-end; background: var(--primary); color: white; }
-        .m.he { align-self: flex-start; background: #eee; }
+        /* CHAT INTEGRADO */
+        #chatWrap { height: 70vh; display: flex; flex-direction: column; background: white; border-radius: 25px; border: 1px solid var(--border); overflow: hidden; }
+        #chatFlow { flex-grow: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background: #fafafa; }
+        .bubble { padding: 15px 20px; border-radius: 20px; max-width: 80%; font-size: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .bubble.me { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 2px; }
+        .bubble.you { align-self: flex-start; background: white; color: #333; border-bottom-left-radius: 2px; }
 
         /* BOTÕES */
-        .btn { padding: 14px 24px; border-radius: 30px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 15px; }
-        .btn-primary { background: var(--primary); color: white; width: 100%; }
-        .btn-google { background: white; border: 1px solid #ddd; width: 100%; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn { padding: 16px 30px; border-radius: 40px; border: none; cursor: pointer; font-weight: 800; font-size: 14px; }
+        .btn-blue { background: var(--primary); color: white; width: 100%; }
+        .btn-google { background: white; border: 1px solid #ddd; width: 100%; margin-bottom: 25px; display: flex; align-items: center; justify-content: center; gap: 12px; }
 
-        .overlay-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; z-index: 1500; }
-        .overlay-bg.active { display: block; }
+        .blur-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; z-index: 1500; backdrop-filter: blur(4px); }
+        .blur-bg.active { display: block; }
     </style>
 </head>
 <body>
 
-    <div id="authScreen" class="full-overlay">
-        <div class="card">
-            <h1 style="font-size: 50px; letter-spacing: -3px; margin-bottom: 10px;">RESP</h1>
-            <p style="margin-bottom: 30px; color: #666;">Entre ou crie sua conta modular.</p>
+    <div id="screenAuth" class="overlay-full">
+        <div class="card-auth">
+            <h1 style="font-size: 60px; letter-spacing: -4px; margin-bottom: 5px;">RESP</h1>
+            <p style="color: #888; margin-bottom: 35px;">Acesse sua conta modular</p>
             
-            <button class="btn btn-google" onclick="authGoogle()">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Google
+            <button class="btn btn-google" onclick="doGoogle()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Continuar com Google
             </button>
 
-            <div style="margin-bottom: 20px; color: #aaa; font-size: 12px; display: flex; align-items: center; gap: 10px;">
-                <hr style="flex-grow:1; border:0; border-top:1px solid #eee;"> OU E-MAIL <hr style="flex-grow:1; border:0; border-top:1px solid #eee;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+                <div style="flex:1; height:1px; background:#eee;"></div>
+                <span style="font-size:11px; color:#aaa;">OU E-MAIL</span>
+                <div style="flex:1; height:1px; background:#eee;"></div>
             </div>
 
-            <div id="emailForm">
-                <input type="email" id="logEmail" placeholder="E-mail" style="margin-bottom:10px;">
-                <input type="password" id="logPass" placeholder="Senha" style="margin-bottom:10px;">
-                <button class="btn btn-primary" onclick="authEmail()">Entrar / Cadastrar</button>
-                <p style="font-size: 11px; color: #999; margin-top: 15px;">Se o e-mail não existir, criaremos uma conta nova para você.</p>
-            </div>
+            <input type="email" id="email" placeholder="Seu e-mail">
+            <input type="password" id="pass" placeholder="Sua senha">
+            <button class="btn btn-blue" onclick="doEmail()">Entrar ou Cadastrar</button>
         </div>
     </div>
 
-    <div id="setupScreen" class="full-overlay hidden">
-        <div class="card">
-            <h2>Configuração Inicial</h2>
-            <p style="margin: 10px 0 25px; color: #666;">Como quer ser chamado na rede?</p>
-            <input type="text" id="setupNick" placeholder="@seu_nickname" style="margin-bottom: 20px;">
-            <button class="btn btn-primary" onclick="finalizarSetup()">Salvar e Entrar</button>
-        </div>
-    </div>
-
-    <div id="settingsScreen" class="full-overlay hidden">
-        <div class="card">
-            <h2>Configurações</h2>
-            <button class="btn btn-danger" style="margin-top:30px; width:100%;" onclick="sair()">Sair da Conta</button>
-            <button class="btn" style="margin-top:10px; width:100%; background:#eee;" onclick="toggleConfigs()">Voltar</button>
+    <div id="screenSetup" class="overlay-full hidden">
+        <div class="card-auth">
+            <h2>Personalize seu Perfil</h2>
+            <p style="margin: 15px 0 25px; color:#666;">Como você quer ser chamado?</p>
+            <input type="text" id="newNick" placeholder="@seu_nome">
+            <button class="btn btn-blue" onclick="saveSetup()">Finalizar e Entrar</button>
         </div>
     </div>
 
     <header>
-        <button onclick="toggleSidebar()" style="background:none; border:none; font-size:28px; cursor:pointer;">☰</button>
-        <h2 id="userNickHeader">RESP</h2>
-        <button onclick="toggleConfigs()" style="background:none; border:none; font-size:24px; cursor:pointer;">⚙️</button>
+        <button onclick="sideOpen()" style="background:none; border:none; font-size:32px; cursor:pointer;">☰</button>
+        <h2 id="headNick">RESP</h2>
+        <button onclick="toggleSettings()" style="background:none; border:none; font-size:26px;">⚙️</button>
     </header>
 
-    <div class="overlay-bg" id="blur" onclick="toggleSidebar()"></div>
+    <div class="blur-bg" id="blur" onclick="sideOpen()"></div>
 
     <aside class="sidebar" id="sidebar">
-        <p style="font-size:10px; color:#aaa; font-weight:bold; margin-bottom:20px; letter-spacing:1px;">MENUS ATIVOS</p>
+        <p style="font-size:10px; color:#999; font-weight:bold; letter-spacing:2px; margin-bottom:20px; padding-left:10px;">MENUS</p>
         
         <ul id="moduleList"></ul>
 
-        <div class="btn-custom-trigger" onclick="abrirCustom()">
-            🛠️ PERSONALIZAR BARRA
+        <div class="btn-trigger-custom" onclick="openPanel()">
+            🛠️ CUSTOMIZAR
         </div>
     </aside>
 
     <main>
-        <div id="view-Inicio">
-            <h1>Bem-vindo!</h1>
-            <p>Seu espaço modular está pronto. Adicione ferramentas na barra lateral.</p>
+        <div id="tab-Inicio" class="tab-content active">
+            <h1>Início</h1>
+            <p style="margin-top:20px; color:#666;">Bem-vindo ao RESP. Clique em "Customizar" na barra lateral para adicionar novas abas.</p>
         </div>
 
-        <div id="view-Vídeos" class="hidden">
-            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+        <div id="tab-Vídeos" class="tab-content">
+            <div style="display:flex; justify-content:space-between;">
                 <h1>Vídeos</h1>
-                <button class="btn btn-primary" style="width:auto;" onclick="document.getElementById('postArea').classList.toggle('hidden')">+ Novo</button>
+                <button class="btn btn-blue" style="width:auto;" onclick="document.getElementById('postBox').classList.toggle('hidden')">+ Postar</button>
             </div>
-            <div id="postArea" class="hidden" style="background:white; padding:20px; border-radius:15px; margin-bottom:20px; border:1px solid #ddd; display:flex; flex-direction:column; gap:10px;">
-                <input type="text" id="vT" placeholder="Título">
-                <input type="file" id="vF" accept="video/*">
-                <button class="btn btn-primary" id="vB" onclick="uploadV()">Publicar</button>
+            <div id="postBox" class="hidden" style="margin-top:20px; background:white; padding:25px; border-radius:20px; border:1px solid #ddd; display:flex; flex-direction:column; gap:10px;">
+                <input type="text" id="vt" placeholder="Título do vídeo">
+                <input type="file" id="vf" accept="video/*">
+                <button class="btn btn-blue" id="vb" onclick="upVideo()">Publicar Agora</button>
             </div>
-            <div class="grid" id="vGrid"></div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:20px; margin-top:30px;" id="vGrid"></div>
         </div>
 
-        <div id="view-Chat" class="hidden">
+        <div id="tab-Chat" class="tab-content">
             <h1>Chat Global</h1>
-            <div id="chatContainer">
-                <div id="msgBox"></div>
-                <div style="padding:15px; display:flex; border-top:1px solid #eee;">
-                    <input type="text" id="chatIn" placeholder="Digite aqui..." style="flex-grow:1; margin-right:10px;">
-                    <button class="btn btn-primary" style="width:auto" onclick="mandarMsg()">Enviar</button>
+            <div id="chatWrap" style="margin-top:20px;">
+                <div id="chatFlow"></div>
+                <div style="padding:20px; display:flex; background:white; border-top:1px solid #eee;">
+                    <input type="text" id="chatIn" placeholder="Escreva sua mensagem..." style="flex-grow:1; margin-right:15px; border-radius:30px;">
+                    <button class="btn btn-blue" style="width:auto;" onclick="sendMsg()">Enviar</button>
                 </div>
             </div>
         </div>
     </main>
 
-    <div id="dragPanel">
-        <span style="font-weight:bold; color:#555;">ARRASTE OU CLIQUE:</span>
-        <div class="drag-box" draggable="true" ondragstart="startDrag(event)" onclick="addModulo('Vídeos')">Vídeos</div>
-        <div class="drag-box" draggable="true" ondragstart="startDrag(event)" onclick="addModulo('Chat')">Chat</div>
-        <div class="drag-box" draggable="true" ondragstart="startDrag(event)" onclick="addModulo('Loja')">Loja</div>
-        <div class="drag-box" draggable="true" ondragstart="startDrag(event)" onclick="addModulo('Explorar')">Explorar</div>
-        <button onclick="fecharCustom()" style="background:white; color:black; border:none; padding:10px 20px; border-radius:20px; font-weight:bold; cursor:pointer;">Fechar</button>
+    <div id="customPanel">
+        <span style="font-weight:900; color:#444; font-size:12px;">ADICIONAR:</span>
+        <div class="box-mod" draggable="true" ondragstart="startDrag(event)" onclick="addMod('Vídeos')">Vídeos</div>
+        <div class="box-mod" draggable="true" ondragstart="startDrag(event)" onclick="addMod('Chat')">Chat</div>
+        <div class="box-mod" draggable="true" ondragstart="startDrag(event)" onclick="addMod('Loja')">Loja</div>
+        <div class="box-mod" draggable="true" ondragstart="startDrag(event)" onclick="addMod('Explorar')">Explorar</div>
+        <button onclick="closePanel()" style="background:white; color:black; border:none; padding:10px 25px; border-radius:30px; font-weight:bold; cursor:pointer; margin-left:30px;">PRONTO</button>
     </div>
 
     <script>
@@ -221,180 +208,165 @@
         const db = firebase.firestore();
         const storage = firebase.storage();
 
-        let uData = { nick: '', modules: ['Início'] };
+        let currentUserData = null;
 
         // --- SISTEMA DE LOGIN ---
-        async function authGoogle() {
-            await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-        }
-
-        async function authEmail() {
-            const email = document.getElementById('logEmail').value;
-            const pass = document.getElementById('logPass').value;
-            if(!email || !pass) return alert("Preencha e-mail e senha.");
-            
-            try {
-                // Tenta logar, se falhar tenta criar
-                await auth.signInWithEmailAndPassword(email, pass);
-            } catch (e) {
-                if (e.code === 'auth/user-not-found') {
-                    await auth.createUserWithEmailAndPassword(email, pass);
-                } else { alert(e.message); }
-            }
+        async function doGoogle() { try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); } catch(e){alert(e.message)} }
+        
+        async function doEmail() {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('pass').value;
+            if(!e || !p) return alert("Preencha os campos!");
+            try { await auth.signInWithEmailAndPassword(e, p); } 
+            catch(err) { if(err.code === 'auth/user-not-found') await auth.createUserWithEmailAndPassword(e, p); else alert(err.message); }
         }
 
         function sair() { auth.signOut().then(() => location.reload()); }
 
-        // MONITOR DE USUÁRIO (O CÉREBRO)
-        auth.onAuthStateChanged(async (user) => {
+        // --- ESCUTADOR DE ESTADO (REAL-TIME) ---
+        auth.onAuthStateChanged(user => {
             if (user) {
-                document.getElementById('authScreen').classList.add('hidden');
-                const doc = await db.collection("users").doc(user.uid).get();
-                
-                if (doc.exists()) {
-                    uData = doc.data();
-                    if(!uData.nick) {
-                        document.getElementById('setupScreen').classList.remove('hidden');
+                document.getElementById('screenAuth').classList.add('hidden');
+                // Escuta o documento do usuário em tempo real
+                db.collection("users").doc(user.uid).onSnapshot(doc => {
+                    if (doc.exists()) {
+                        currentUserData = doc.data();
+                        if (!currentUserData.nick) {
+                            document.getElementById('screenSetup').classList.remove('hidden');
+                        } else {
+                            document.getElementById('screenSetup').classList.add('hidden');
+                            renderSidebar(); // Atualiza a barra lateral na hora que o banco mudar!
+                        }
                     } else {
-                        document.getElementById('setupScreen').classList.add('hidden');
-                        renderAll();
+                        document.getElementById('screenSetup').classList.remove('hidden');
                     }
-                } else {
-                    // Novo usuário total
-                    document.getElementById('setupScreen').classList.remove('hidden');
-                }
+                });
             } else {
-                document.getElementById('authScreen').classList.remove('hidden');
+                document.getElementById('screenAuth').classList.remove('hidden');
             }
         });
 
-        async function finalizarSetup() {
-            const nick = document.getElementById('setupNick').value.trim();
-            if(!nick) return alert("Nickname é obrigatório!");
-            
-            uData = { nick: nick, modules: ['Início'] };
-            await db.collection("users").doc(auth.currentUser.uid).set(uData);
-            document.getElementById('setupScreen').classList.add('hidden');
-            renderAll();
+        async function saveSetup() {
+            const n = document.getElementById('newNick').value.trim();
+            if(!n) return alert("Nickname obrigatório!");
+            await db.collection("users").doc(auth.currentUser.uid).set({
+                nick: n, modules: ['Inicio']
+            });
         }
 
-        // --- RENDERIZAÇÃO DA UI ---
-        function renderAll() {
-            document.getElementById('userNickHeader').innerText = "@" + uData.nick;
+        // --- RENDERIZAÇÃO EM TEMPO REAL ---
+        function renderSidebar() {
+            document.getElementById('headNick').innerText = currentUserData.nick;
             const list = document.getElementById('moduleList');
             list.innerHTML = "";
             
-            uData.modules.forEach(m => {
+            currentUserData.modules.forEach(m => {
                 const li = document.createElement('li');
-                li.className = "module-item";
+                li.className = "item-menu";
                 li.innerText = m;
-                li.onclick = () => mudarAba(m);
+                li.onclick = () => switchTab(m);
                 list.appendChild(li);
             });
         }
 
-        function mudarAba(nome) {
-            ['Inicio', 'Vídeos', 'Chat'].forEach(a => {
-                const view = document.getElementById('view-'+a);
-                if(view) view.classList.add('hidden');
-            });
-            const alvo = document.getElementById('view-'+nome);
-            if(alvo) alvo.classList.remove('hidden');
+        function switchTab(name) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            const target = document.getElementById('tab-' + name);
+            if(target) target.classList.add('active');
             
-            if(nome === 'Vídeos') loadV();
-            if(nome === 'Chat') loadC();
-            if(window.innerWidth < 1000) toggleSidebar();
+            if(name === 'Vídeos') syncVideos();
+            if(name === 'Chat') syncChat();
+            if(window.innerWidth < 1000) sideOpen();
         }
 
-        // --- SISTEMA DE PERSONALIZAÇÃO (CLICK & DRAG) ---
-        async function addModulo(nome) {
-            if(!uData.modules.includes(nome)) {
-                uData.modules.push(nome);
-                // Força o salvamento e a atualização visual
+        // --- SISTEMA DE CLICAR E MANDAR (RESOLVIDO) ---
+        async function addMod(name) {
+            // Se o módulo não estiver na lista, adicionamos no array
+            if(!currentUserData.modules.includes(name)) {
+                const newModules = [...currentUserData.modules, name];
+                // Atualizamos o Firebase. O "onSnapshot" lá em cima vai detectar 
+                // essa mudança e atualizar a barra lateral SOZINHO.
                 await db.collection("users").doc(auth.currentUser.uid).update({
-                    modules: uData.modules
+                    modules: newModules
                 });
-                renderAll(); // Atualiza a barra lateral na hora
             }
         }
 
-        function startDrag(e) {
-            e.dataTransfer.setData("mod", e.target.innerText);
-        }
-
-        const dropZone = document.getElementById('moduleList');
-        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); };
-        dropZone.ondragleave = () => dropZone.classList.remove('drag-over');
-        dropZone.ondrop = async (e) => {
+        // --- ARRASTAR E SOLTAR ---
+        function startDrag(e) { e.dataTransfer.setData("mod", e.target.innerText); }
+        const dropArea = document.getElementById('moduleList');
+        dropArea.ondragover = e => { e.preventDefault(); dropArea.classList.add('drag-over'); };
+        dropArea.ondragleave = () => dropArea.classList.remove('drag-over');
+        dropArea.ondrop = e => {
             e.preventDefault();
-            dropZone.classList.remove('drag-over');
-            const mod = e.dataTransfer.getData("mod");
-            if(mod) addModulo(mod);
+            dropArea.classList.remove('drag-over');
+            const modName = e.dataTransfer.getData("mod");
+            if(modName) addMod(modName);
         };
 
-        // --- FUNCIONALIDADES (CHAT / VIDEO) ---
-        async function uploadV() {
-            const f = document.getElementById('vF').files[0];
-            const t = document.getElementById('vT').value;
+        // --- VÍDEOS ---
+        async function upVideo() {
+            const f = document.getElementById('vf').files[0];
+            const t = document.getElementById('vt').value;
             if(!f || !t) return;
-            document.getElementById('vB').innerText = "...";
-            const ref = storage.ref(`v/${Date.now()}_${f.name}`);
+            document.getElementById('vb').innerText = "Carregando...";
+            const ref = storage.ref(`vids/${Date.now()}_${f.name}`);
             await ref.put(f);
             const url = await ref.getDownloadURL();
             await db.collection("videos").add({
-                t, url, author: uData.nick, time: firebase.firestore.FieldValue.serverTimestamp()
+                t, url, author: currentUserData.nick, time: firebase.firestore.FieldValue.serverTimestamp()
             });
-            location.reload();
+            document.getElementById('postBox').classList.add('hidden');
         }
 
-        function loadV() {
-            const g = document.getElementById('vGrid');
-            db.collection("videos").orderBy("time", "desc").onSnapshot(s => {
-                g.innerHTML = "";
-                s.forEach(d => {
+        function syncVideos() {
+            const grid = document.getElementById('vGrid');
+            db.collection("videos").orderBy("time", "desc").onSnapshot(snap => {
+                grid.innerHTML = "";
+                snap.forEach(d => {
                     const v = d.data();
-                    g.innerHTML += `<div class="video-card"><div class="v-thumb"><video src="${v.url}#t=0.5" controls></video></div><div style="padding:15px"><b>${v.t}</b><br><small>@${v.author}</small></div></div>`;
+                    grid.innerHTML += `<div style="background:white; border-radius:20px; overflow:hidden; border:1px solid #ddd;">
+                        <video src="${v.url}#t=0.5" controls style="width:100%; aspect-ratio:16/9; background:#000;"></video>
+                        <div style="padding:15px"><b>${v.t}</b><br><small>Por ${v.author}</small></div>
+                    </div>`;
                 });
             });
         }
 
-        function loadC() {
-            const b = document.getElementById('msgBox');
-            db.collection("chat").orderBy("time", "asc").limit(50).onSnapshot(s => {
-                b.innerHTML = "";
-                s.forEach(d => {
+        // --- CHAT ---
+        function syncChat() {
+            const flow = document.getElementById('chatFlow');
+            db.collection("chat").orderBy("time", "asc").limit(100).onSnapshot(snap => {
+                flow.innerHTML = "";
+                snap.forEach(d => {
                     const m = d.data();
-                    const c = m.nick === uData.nick ? 'me' : 'he';
-                    b.innerHTML += `<div class="m ${c}"><b>${m.nick}</b><br>${m.text}</div>`;
+                    const style = m.nick === currentUserData.nick ? 'me' : 'you';
+                    flow.innerHTML += `<div class="bubble ${style}"><b>${m.nick}</b><br>${m.text}</div>`;
                 });
-                b.scrollTop = b.scrollHeight;
+                flow.scrollTop = flow.scrollHeight;
             });
         }
 
-        async function mandarMsg() {
+        async function sendMsg() {
             const i = document.getElementById('chatIn');
             if(!i.value) return;
             await db.collection("chat").add({
-                text: i.value, nick: uData.nick, time: firebase.firestore.FieldValue.serverTimestamp()
+                text: i.value, nick: currentUserData.nick, time: firebase.firestore.FieldValue.serverTimestamp()
             });
             i.value = "";
         }
 
-        // --- INTERFACE UTILS ---
-        function toggleSidebar() {
+        // --- INTERFACE ---
+        function sideOpen() {
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('blur').classList.toggle('active');
         }
-        function abrirCustom() {
-            document.getElementById('dragPanel').classList.add('visible');
-            document.getElementById('sidebar').classList.add('active');
+        function openPanel() {
+            document.getElementById('customPanel').classList.add('visible');
+            document.getElementById('sidebar').classList.add('active'); // Mantém aberto pra ver o resultado
         }
-        function fecharCustom() {
-            document.getElementById('dragPanel').classList.remove('visible');
-        }
-        function toggleConfigs() {
-            document.getElementById('settingsScreen').classList.toggle('hidden');
-        }
+        function closePanel() { document.getElementById('customPanel').classList.remove('visible'); }
+        function toggleSettings() { if(confirm("Deseja sair da conta?")) sair(); }
     </script>
 </body>
 </html>
