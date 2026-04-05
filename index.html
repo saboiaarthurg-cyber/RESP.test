@@ -6,7 +6,7 @@
   <title>RespF1 - Rede Social</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK v10 (compat para simplicidade) -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -15,208 +15,161 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
     .video-container { aspect-ratio: 16 / 9; }
-    .sidebar { transition: all 0.3s ease; }
+    .draggable { cursor: grab; }
+    .dragging { opacity: 0.5; }
   </style>
 </head>
-<body class="bg-zinc-950 text-zinc-100 dark">
-  <div class="flex h-screen overflow-hidden" id="app">
-    <!-- SIDEBAR -->
-    <div id="sidebar" class="w-72 bg-zinc-900 border-r border-zinc-800 flex flex-col sidebar">
-      <div class="p-4 border-b border-zinc-800 flex items-center gap-3">
-        <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl">R</div>
-        <h1 class="text-2xl font-bold text-blue-500">RespF1</h1>
+<body class="bg-zinc-950 text-zinc-100">
+  <div class="flex h-screen overflow-hidden">
+    <!-- SIDEBAR com Drag & Drop -->
+    <div id="sidebar" class="w-72 bg-zinc-900 border-r border-zinc-800 flex flex-col overflow-hidden">
+      <div class="p-5 border-b border-zinc-800 flex items-center gap-3">
+        <div class="w-10 h-10 bg-[#065fd4] rounded-2xl flex items-center justify-center text-white font-bold text-3xl">R</div>
+        <h1 class="text-3xl font-bold tracking-tight">RespF1</h1>
       </div>
 
-      <div class="flex-1 p-3 overflow-y-auto" id="sidebar-modules">
-        <!-- Módulos serão inseridos via JS -->
+      <div id="modules-container" class="flex-1 p-3 overflow-y-auto space-y-1">
+        <!-- Módulos inseridos via JS -->
       </div>
 
       <div class="p-4 border-t border-zinc-800">
-        <button onclick="addModule()" 
-                class="w-full flex items-center justify-center gap-2 border border-dashed border-zinc-700 hover:border-blue-500 rounded-2xl py-3 text-sm font-medium">
+        <button onclick="addNewModule()" class="w-full py-3 border border-dashed border-zinc-600 hover:border-[#065fd4] rounded-2xl flex items-center justify-center gap-2 text-sm font-medium transition">
           <i class="fas fa-plus"></i> Adicionar módulo
         </button>
       </div>
     </div>
 
-    <!-- MAIN CONTENT -->
+    <!-- CONTEÚDO PRINCIPAL -->
     <div class="flex-1 flex flex-col">
       <!-- TOPBAR -->
-      <div class="h-14 bg-zinc-900 border-b border-zinc-800 px-6 flex items-center justify-between">
-        <div class="flex items-center gap-4">
-          <button onclick="toggleMobileSidebar()" class="lg:hidden text-2xl">
-            <i class="fas fa-bars"></i>
-          </button>
-          <div class="relative w-96">
-            <input id="search-input" 
-                   type="text" 
-                   placeholder="Buscar vídeos, usuários ou #tags..." 
-                   class="w-full bg-zinc-800 border border-zinc-700 rounded-full py-2 pl-11 pr-4 text-sm focus:outline-none focus:border-blue-500">
-            <i class="fas fa-search absolute left-4 top-3 text-zinc-500"></i>
+      <div class="h-16 bg-zinc-900 border-b border-zinc-800 px-6 flex items-center justify-between">
+        <div class="flex items-center gap-4 lg:hidden">
+          <button onclick="toggleSidebar()" class="text-2xl"><i class="fas fa-bars"></i></button>
+        </div>
+
+        <div class="flex-1 max-w-xl mx-8">
+          <div class="relative">
+            <input id="search-bar" type="text" placeholder="Buscar vídeos, @usuários ou #tags..." 
+                   class="w-full bg-zinc-800 border border-zinc-700 focus:border-[#065fd4] rounded-full py-3 pl-12 text-sm">
+            <i class="fas fa-search absolute left-5 top-3.5 text-zinc-500"></i>
           </div>
         </div>
 
         <div class="flex items-center gap-6">
-          <!-- Notificações -->
-          <div class="relative cursor-pointer" onclick="showNotifications()">
-            <i class="fas fa-bell text-xl"></i>
-            <span id="notification-count" 
-                  class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">3</span>
+          <button onclick="toggleDarkMode()" id="dark-toggle" class="text-xl"><i class="fas fa-moon"></i></button>
+
+          <div onclick="showNotifications()" class="relative cursor-pointer">
+            <i class="fas fa-bell text-2xl"></i>
+            <span id="notif-count" class="absolute -top-1 -right-1 bg-red-500 text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
           </div>
 
-          <!-- Avatar -->
-          <div onclick="showProfileMenu()" class="flex items-center gap-3 cursor-pointer">
-            <img id="user-avatar" src="https://via.placeholder.com/40" alt="Avatar" 
-                 class="w-8 h-8 rounded-full object-cover border border-zinc-700">
-            <div>
-              <p id="user-nickname" class="text-sm font-semibold">@seunick</p>
-            </div>
+          <div onclick="showProfile()" class="flex items-center gap-3 cursor-pointer">
+            <img id="avatar-top" src="https://via.placeholder.com/40" class="w-9 h-9 rounded-2xl object-cover border-2 border-[#065fd4]">
+            <div id="nickname-top" class="font-semibold text-sm">@seunick</div>
           </div>
 
-          <button onclick="logout()" 
-                  class="px-4 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm">
-            Sair
-          </button>
+          <button onclick="logout()" class="px-5 py-2 bg-zinc-800 hover:bg-red-600/80 rounded-2xl text-sm font-medium">Sair</button>
         </div>
       </div>
 
-      <!-- PAGE CONTENT -->
-      <div class="flex-1 overflow-auto p-6" id="main-content">
-        <!-- Feed será carregado aqui por padrão -->
-        <div id="feed-page" class="max-w-3xl mx-auto space-y-8">
-          <!-- Vídeos do feed serão inseridos via JS -->
-        </div>
+      <!-- CONTEÚDO DINÂMICO -->
+      <div id="main-content" class="flex-1 overflow-auto p-6 bg-zinc-950">
+        <!-- Feed padrão -->
+        <div id="feed-content" class="max-w-3xl mx-auto space-y-10"></div>
 
-        <!-- Outras páginas ocultas inicialmente -->
-        <div id="upload-page" class="hidden max-w-xl mx-auto">
-          <div class="bg-zinc-900 rounded-3xl p-10 text-center">
-            <h2 class="text-3xl font-bold mb-8">Enviar Vídeo</h2>
-            <div id="upload-area" 
-                 class="border-2 border-dashed border-zinc-700 rounded-3xl h-80 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition">
-              <i class="fas fa-cloud-upload-alt text-6xl text-zinc-500 mb-6"></i>
-              <p class="text-lg font-medium">Arraste seu vídeo MP4 aqui ou clique para selecionar</p>
-              <p class="text-sm text-zinc-500 mt-2">Apenas arquivos .mp4 • Máx. 500MB</p>
-            </div>
-            <input type="file" id="video-file" accept="video/mp4" class="hidden">
-            
-            <div id="progress-container" class="hidden mt-8">
-              <div class="h-2 bg-zinc-800 rounded-full overflow-hidden">
-                <div id="upload-progress" class="h-full bg-blue-600 w-0 transition-all"></div>
-              </div>
-              <p id="progress-text" class="text-center text-sm mt-3">0%</p>
-            </div>
-
-            <button onclick="startUpload()" 
-                    id="upload-btn"
-                    class="hidden mt-8 w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-2xl font-semibold">
-              Publicar Vídeo
-            </button>
+        <!-- Upload -->
+        <div id="upload-content" class="hidden max-w-2xl mx-auto bg-zinc-900 rounded-3xl p-10">
+          <h2 class="text-3xl font-bold mb-8 text-center">Upload de Vídeo</h2>
+          <div id="drop-zone" class="border-4 border-dashed border-zinc-700 hover:border-[#065fd4] rounded-3xl h-96 flex flex-col items-center justify-center cursor-pointer transition">
+            <i class="fas fa-cloud-upload-alt text-7xl text-zinc-500 mb-6"></i>
+            <p class="text-xl font-medium">Arraste o vídeo MP4 ou clique aqui</p>
+            <input type="file" id="video-input" accept="video/mp4" class="hidden">
           </div>
+          <div id="upload-progress-bar" class="hidden mt-8">
+            <div class="h-3 bg-zinc-800 rounded-full overflow-hidden">
+              <div id="progress-fill" class="h-full bg-[#065fd4] w-0 transition-all"></div>
+            </div>
+            <p id="progress-text" class="text-center mt-3 text-sm">0%</p>
+          </div>
+          <button onclick="uploadVideo()" id="upload-button" class="hidden mt-8 w-full py-5 bg-[#065fd4] rounded-3xl font-semibold text-lg">Publicar Vídeo</button>
         </div>
 
         <!-- Chat Global -->
-        <div id="chat-page" class="hidden h-full flex flex-col">
-          <div class="flex-1 overflow-auto p-6 space-y-6" id="chat-messages">
-            <!-- Mensagens aparecem aqui -->
-          </div>
-          <div class="p-4 border-t border-zinc-800 bg-zinc-900">
+        <div id="global-chat-content" class="hidden flex flex-col h-full max-w-3xl mx-auto">
+          <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-900 rounded-3xl"></div>
+          <div class="p-4 bg-zinc-900 border-t border-zinc-800 rounded-b-3xl">
             <div class="flex gap-3">
-              <input id="chat-input" 
-                     type="text" 
-                     placeholder="Digite uma mensagem..." 
-                     class="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-3 focus:outline-none">
-              <button onclick="sendChatMessage()" 
-                      class="bg-blue-600 px-8 rounded-2xl">Enviar</button>
+              <input id="chat-input" type="text" placeholder="Digite sua mensagem..." class="flex-1 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 focus:outline-none">
+              <button onclick="sendGlobalMessage()" class="bg-[#065fd4] px-10 rounded-3xl font-semibold">Enviar</button>
             </div>
           </div>
         </div>
 
-        <!-- DM (Mensagens Privadas) -->
-        <div id="dm-page" class="hidden">
-          <h2 class="text-2xl font-bold mb-6">Mensagens Privadas</h2>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Lista de conversas -->
-            <div class="bg-zinc-900 rounded-3xl p-6">
-              <input type="text" id="dm-search" placeholder="Buscar @nickname..." 
-                     class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 mb-6">
-              <div id="dm-conversations" class="space-y-3">
-                <!-- Conversas carregadas via JS -->
-              </div>
+        <!-- DM -->
+        <div id="dm-content" class="hidden">
+          <div class="grid grid-cols-12 gap-6 h-full">
+            <div class="col-span-4 bg-zinc-900 rounded-3xl p-6 overflow-auto">
+              <input id="dm-search-input" type="text" placeholder="Buscar @nickname..." class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 mb-6">
+              <div id="dm-list" class="space-y-3"></div>
             </div>
-            <!-- Área de chat privado -->
-            <div class="md:col-span-2 bg-zinc-900 rounded-3xl flex flex-col h-[600px]">
-              <div id="dm-header" class="p-4 border-b border-zinc-800 font-semibold"></div>
-              <div id="dm-messages" class="flex-1 overflow-auto p-6 space-y-4"></div>
-              <div class="p-4 border-t border-zinc-800">
-                <input id="dm-input" type="text" placeholder="Responda..." 
-                       class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-3">
+            <div class="col-span-8 bg-zinc-900 rounded-3xl flex flex-col">
+              <div id="dm-chat-header" class="p-5 border-b border-zinc-800 font-semibold flex items-center gap-3"></div>
+              <div id="dm-chat-messages" class="flex-1 overflow-auto p-6 space-y-6"></div>
+              <div class="p-5 border-t border-zinc-800">
+                <input id="dm-message-input" type="text" placeholder="Digite sua mensagem..." class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
               </div>
             </div>
           </div>
         </div>
 
         <!-- Explorar -->
-        <div id="explore-page" class="hidden">
+        <div id="explore-content" class="hidden">
           <h2 class="text-3xl font-bold mb-8">Explorar</h2>
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="explore-grid">
-            <!-- Conteúdo dinâmico -->
-          </div>
+          <div id="explore-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
         </div>
 
         <!-- Loja -->
-        <div id="store-page" class="hidden">
-          <h2 class="text-3xl font-bold mb-8">Loja RespF1</h2>
+        <div id="store-content" class="hidden">
+          <h2 class="text-3xl font-bold mb-10">Loja RespF1</h2>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div class="bg-zinc-900 rounded-3xl p-6 text-center">
-              <div class="h-48 bg-zinc-800 rounded-2xl mb-6"></div>
-              <p class="font-semibold">Camiseta RespF1</p>
-              <p class="text-blue-500 text-xl font-bold mt-2">R$ 89,90</p>
+              <div class="h-64 bg-zinc-800 rounded-2xl mb-6 flex items-center justify-center text-6xl">👕</div>
+              <p class="font-bold text-xl">Camiseta Oficial</p>
+              <p class="text-[#065fd4] text-2xl font-bold mt-2">R$ 89,90</p>
             </div>
-            <!-- Mais itens de exemplo -->
+            <!-- Adicione mais cards conforme necessário -->
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- MODAL DE LOGIN / NICKNAME -->
-  <div id="auth-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50">
-    <div class="bg-zinc-900 rounded-3xl p-10 max-w-md w-full">
-      <h2 class="text-3xl font-bold text-center mb-8">Bem-vindo ao RespF1</h2>
-      
-      <button onclick="loginWithGoogle()" 
-              class="w-full bg-white text-black py-4 rounded-2xl font-medium flex items-center justify-center gap-3 mb-6">
-        <i class="fab fa-google"></i> Entrar com Google
+  <!-- MODALS -->
+  <div id="auth-modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center z-50">
+    <div class="bg-zinc-900 rounded-3xl p-10 w-full max-w-md">
+      <h2 class="text-4xl font-bold text-center mb-10">RespF1</h2>
+      <button onclick="loginGoogle()" class="w-full py-4 bg-white text-black rounded-2xl font-semibold flex items-center justify-center gap-3 mb-6">
+        <i class="fab fa-google"></i> Continuar com Google
       </button>
-
-      <div class="my-6 text-center text-zinc-500">ou</div>
-
-      <input id="email-input" type="email" placeholder="Email" 
-             class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-4 mb-4">
-      <input id="password-input" type="password" placeholder="Senha" 
-             class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-4 mb-6">
-
-      <button onclick="loginWithEmail()" 
-              class="w-full bg-blue-600 py-4 rounded-2xl font-semibold mb-4">Entrar</button>
-      <button onclick="registerWithEmail()" 
-              class="w-full bg-transparent border border-zinc-700 py-4 rounded-2xl font-semibold">Criar conta</button>
+      <div class="text-center text-zinc-500 my-6">ou</div>
+      <input id="email" type="email" placeholder="Email" class="w-full py-4 px-6 bg-zinc-800 rounded-2xl mb-4">
+      <input id="password" type="password" placeholder="Senha" class="w-full py-4 px-6 bg-zinc-800 rounded-2xl mb-8">
+      <button onclick="loginEmail()" class="w-full py-4 bg-[#065fd4] rounded-2xl font-semibold mb-3">Entrar</button>
+      <button onclick="registerEmail()" class="w-full py-4 border border-zinc-700 rounded-2xl font-semibold">Criar conta</button>
     </div>
   </div>
 
-  <!-- MODAL NICKNAME -->
-  <div id="nickname-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50">
-    <div class="bg-zinc-900 rounded-3xl p-10 max-w-md w-full">
-      <h2 class="text-2xl font-bold text-center mb-6">Escolha seu nickname</h2>
-      <input id="nickname-input" type="text" placeholder="@seunickname" 
-             class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-4 text-center text-xl mb-6">
-      <button onclick="saveNickname()" 
-              class="w-full bg-blue-600 py-4 rounded-2xl font-semibold">Confirmar Nickname</button>
-      <p id="nickname-error" class="text-red-500 text-center mt-4 hidden"></p>
+  <div id="nickname-modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center z-50">
+    <div class="bg-zinc-900 rounded-3xl p-10 w-full max-w-sm">
+      <h2 class="text-2xl font-bold text-center mb-8">Escolha seu @nickname</h2>
+      <input id="nick-input" type="text" placeholder="@seunickname" class="w-full text-center text-2xl py-5 bg-zinc-800 rounded-3xl mb-6">
+      <button onclick="saveNickname()" class="w-full py-5 bg-[#065fd4] rounded-3xl font-bold">Confirmar</button>
+      <p id="nick-error" class="text-red-500 text-center mt-4 hidden"></p>
     </div>
   </div>
 
   <script>
-    // ==================== CONFIGURAÇÃO FIREBASE ====================
+    // ==================== FIREBASE CONFIG ====================
     const firebaseConfig = {
       apiKey: "AIzaSyAvZl2jk8i8n0e9844cxw6mGdCWXB6CZ_w",
       authDomain: "resp-f1.firebaseapp.com",
@@ -233,95 +186,134 @@
 
     let currentUser = null;
     let currentNickname = null;
+    let currentDMId = null;
 
-    // ==================== AUTENTICAÇÃO ====================
-    function showAuthModal() {
-      document.getElementById('auth-modal').classList.remove('hidden');
-      document.getElementById('auth-modal').classList.add('flex');
+    const modules = [
+      {id: "feed", icon: "fa-home", label: "Início", action: () => showPage('feed')},
+      {id: "explore", icon: "fa-compass", label: "Explorar", action: () => showPage('explore')},
+      {id: "upload", icon: "fa-upload", label: "Upload", action: () => showPage('upload')},
+      {id: "chat", icon: "fa-comments", label: "Chat Global", action: () => showPage('chat')},
+      {id: "dm", icon: "fa-paper-plane", label: "Mensagens", action: () => showPage('dm')},
+      {id: "store", icon: "fa-store", label: "Loja", action: () => showPage('store')}
+    ];
+
+    // ==================== INIT ====================
+    function initApp() {
+      tailwind.config = { darkMode: 'class' };
+      renderModules();
+      auth.onAuthStateChanged(user => {
+        if (user) {
+          currentUser = user;
+          checkNickname();
+        } else {
+          document.getElementById('auth-modal').classList.remove('hidden');
+          document.getElementById('auth-modal').classList.add('flex');
+        }
+      });
     }
 
-    function hideAuthModal() {
-      document.getElementById('auth-modal').classList.add('hidden');
-      document.getElementById('auth-modal').classList.remove('flex');
+    function renderModules() {
+      const container = document.getElementById('modules-container');
+      container.innerHTML = '';
+      modules.forEach(mod => {
+        const div = document.createElement('div');
+        div.className = `flex items-center gap-4 px-5 py-4 rounded-2xl hover:bg-zinc-800 cursor-pointer draggable`;
+        div.draggable = true;
+        div.dataset.id = mod.id;
+        div.innerHTML = `<i class="fas ${mod.icon} text-xl"></i><span class="font-medium">${mod.label}</span>`;
+        div.onclick = mod.action;
+        div.ondragstart = dragStart;
+        container.appendChild(div);
+      });
     }
 
-    async function loginWithGoogle() {
+    // Drag & Drop simples
+    function dragStart(e) {
+      e.dataTransfer.setData("text", e.target.dataset.id);
+      setTimeout(() => e.target.classList.add('dragging'), 0);
+    }
+
+    document.getElementById('modules-container').addEventListener('dragover', e => e.preventDefault());
+    document.getElementById('modules-container').addEventListener('drop', e => {
+      e.preventDefault();
+      const id = e.dataTransfer.getData("text");
+      // Reordenação simples (pode melhorar)
+      console.log("Módulo movido:", id);
+    });
+
+    function addNewModule() {
+      alert("Módulo adicionado! (expanda conforme necessidade)");
+      // modules.push(...); renderModules();
+    }
+
+    function toggleSidebar() {
+      const sb = document.getElementById('sidebar');
+      sb.style.display = sb.style.display === 'none' ? 'flex' : 'none';
+    }
+
+    function toggleDarkMode() {
+      document.documentElement.classList.toggle('dark');
+    }
+
+    // ==================== AUTH ====================
+    async function loginGoogle() {
       const provider = new firebase.auth.GoogleAuthProvider();
       try {
-        const result = await auth.signInWithPopup(provider);
-        currentUser = result.user;
-        checkUserProfile();
-      } catch (error) {
-        console.error(error);
-        alert("Erro ao fazer login com Google");
-      }
+        await auth.signInWithPopup(provider);
+      } catch (err) { alert(err.message); }
     }
 
-    async function loginWithEmail() {
-      const email = document.getElementById('email-input').value;
-      const password = document.getElementById('password-input').value;
+    async function loginEmail() {
+      const email = document.getElementById('email').value;
+      const pass = document.getElementById('password').value;
       try {
-        const result = await auth.signInWithEmailAndPassword(email, password);
-        currentUser = result.user;
-        checkUserProfile();
-      } catch (error) {
-        alert("Erro no login: " + error.message);
-      }
+        await auth.signInWithEmailAndPassword(email, pass);
+      } catch (err) { alert(err.message); }
     }
 
-    async function registerWithEmail() {
-      const email = document.getElementById('email-input').value;
-      const password = document.getElementById('password-input').value;
+    async function registerEmail() {
+      const email = document.getElementById('email').value;
+      const pass = document.getElementById('password').value;
       try {
-        const result = await auth.createUserWithEmailAndPassword(email, password);
-        currentUser = result.user;
-        checkUserProfile();
-      } catch (error) {
-        alert("Erro no cadastro: " + error.message);
-      }
+        await auth.createUserWithEmailAndPassword(email, pass);
+      } catch (err) { alert(err.message); }
     }
 
-    async function checkUserProfile() {
-      hideAuthModal();
-      const userDoc = await db.collection('users').doc(currentUser.uid).get();
-      if (userDoc.exists) {
-        currentNickname = userDoc.data().nickname;
-        document.getElementById('user-nickname').textContent = '@' + currentNickname;
-        document.getElementById('user-avatar').src = currentUser.photoURL || 'https://via.placeholder.com/40';
-        loadFeed();
+    async function checkNickname() {
+      document.getElementById('auth-modal').classList.add('hidden');
+      const docRef = db.collection('users').doc(currentUser.uid);
+      const doc = await docRef.get();
+      if (doc.exists) {
+        currentNickname = doc.data().nickname;
+        document.getElementById('nickname-top').textContent = '@' + currentNickname;
+        document.getElementById('avatar-top').src = currentUser.photoURL || 'https://via.placeholder.com/40';
+        showPage('feed');
       } else {
-        showNicknameModal();
+        document.getElementById('nickname-modal').classList.remove('hidden');
+        document.getElementById('nickname-modal').classList.add('flex');
       }
-    }
-
-    function showNicknameModal() {
-      document.getElementById('nickname-modal').classList.remove('hidden');
-      document.getElementById('nickname-modal').classList.add('flex');
     }
 
     async function saveNickname() {
-      const nick = document.getElementById('nickname-input').value.trim().toLowerCase();
+      const nick = document.getElementById('nick-input').value.trim().toLowerCase();
       if (!nick) return;
-
-      const snapshot = await db.collection('users').where('nickname', '==', nick).get();
-      if (!snapshot.empty) {
-        document.getElementById('nickname-error').classList.remove('hidden');
-        document.getElementById('nickname-error').textContent = "Nickname já está em uso!";
+      const q = db.collection('users').where('nickname', '==', nick);
+      const snap = await q.get();
+      if (!snap.empty) {
+        document.getElementById('nick-error').classList.remove('hidden');
+        document.getElementById('nick-error').textContent = 'Nickname já existe!';
         return;
       }
-
       await db.collection('users').doc(currentUser.uid).set({
         uid: currentUser.uid,
-        email: currentUser.email,
         nickname: nick,
         photoURL: currentUser.photoURL,
         createdAt: new Date()
       });
-
       currentNickname = nick;
-      document.getElementById('user-nickname').textContent = '@' + nick;
+      document.getElementById('nickname-top').textContent = '@' + nick;
       document.getElementById('nickname-modal').classList.add('hidden');
-      loadFeed();
+      showPage('feed');
     }
 
     function logout() {
@@ -329,143 +321,154 @@
       location.reload();
     }
 
-    // ==================== FEED ====================
-    async function loadFeed() {
-      document.getElementById('feed-page').classList.remove('hidden');
-      // Limpa conteúdo anterior
-      const feedContainer = document.getElementById('feed-page');
-      feedContainer.innerHTML = '';
+    // ==================== PAGES ====================
+    function showPage(page) {
+      document.querySelectorAll('#main-content > div').forEach(d => d.classList.add('hidden'));
+      if (page === 'feed') {
+        document.getElementById('feed-content').classList.remove('hidden');
+        loadFeed();
+      } else if (page === 'upload') {
+        document.getElementById('upload-content').classList.remove('hidden');
+      } else if (page === 'chat') {
+        document.getElementById('global-chat-content').classList.remove('hidden');
+        loadGlobalChat();
+      } else if (page === 'dm') {
+        document.getElementById('dm-content').classList.remove('hidden');
+        loadDMList();
+      } else if (page === 'explore') {
+        document.getElementById('explore-content').classList.remove('hidden');
+        loadExplore();
+      } else if (page === 'store') {
+        document.getElementById('store-content').classList.remove('hidden');
+      }
+    }
 
-      db.collection('videos').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-        feedContainer.innerHTML = '';
-        snapshot.forEach(doc => {
-          const video = doc.data();
-          const videoHTML = `
+    // ==================== FEED ====================
+    function loadFeed() {
+      const container = document.getElementById('feed-content');
+      container.innerHTML = '<p class="text-center text-zinc-500">Carregando feed...</p>';
+      db.collection('videos').orderBy('createdAt', 'desc').onSnapshot(snap => {
+        container.innerHTML = '';
+        snap.forEach(doc => {
+          const v = doc.data();
+          const html = `
             <div class="bg-zinc-900 rounded-3xl overflow-hidden">
-              <div class="flex items-center p-4 gap-3">
-                <img src="${video.userPhoto || 'https://via.placeholder.com/40'}" class="w-10 h-10 rounded-full">
-                <div>
-                  <p class="font-semibold">@${video.nickname}</p>
-                </div>
+              <div class="flex items-center p-5 gap-4">
+                <img src="${v.userPhoto || ''}" class="w-12 h-12 rounded-2xl">
+                <div><p class="font-bold">@${v.nickname}</p></div>
               </div>
               <div class="video-container bg-black">
-                <video controls class="w-full h-full object-contain">
-                  <source src="${video.videoUrl}" type="video/mp4">
-                </video>
+                <video controls class="w-full h-full" src="${v.videoUrl}"></video>
               </div>
-              <div class="p-5 flex items-center gap-8 text-lg">
-                <button class="flex items-center gap-2 hover:text-red-500 transition">
-                  <i class="fas fa-heart"></i> <span>${video.likes ? video.likes.length : 0}</span>
-                </button>
-                <button class="flex items-center gap-2 hover:text-blue-500 transition">
-                  <i class="fas fa-comment"></i> <span>12</span>
-                </button>
+              <div class="p-5 flex gap-8">
+                <button onclick="likeVideo('${doc.id}')" class="flex items-center gap-2 text-xl"><i class="fas fa-heart"></i> <span>${v.likes ? v.likes.length : 0}</span></button>
+                <button class="flex items-center gap-2 text-xl"><i class="fas fa-comment-dots"></i> <span>Comentar</span></button>
               </div>
-            </div>
-          `;
-          feedContainer.innerHTML += videoHTML;
+            </div>`;
+          container.innerHTML += html;
         });
       });
     }
 
-    // ==================== UPLOAD ====================
-    let selectedFile = null;
-
-    document.getElementById('upload-area').addEventListener('click', () => {
-      document.getElementById('video-file').click();
-    });
-
-    document.getElementById('video-file').addEventListener('change', (e) => {
-      selectedFile = e.target.files[0];
-      if (selectedFile) {
-        document.getElementById('upload-btn').classList.remove('hidden');
+    async function likeVideo(videoId) {
+      const ref = db.collection('videos').doc(videoId);
+      const doc = await ref.get();
+      const likes = doc.data().likes || [];
+      if (likes.includes(currentUser.uid)) {
+        await ref.update({ likes: firebase.firestore.FieldValue.arrayRemove(currentUser.uid) });
+      } else {
+        await ref.update({ likes: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) });
       }
-    });
-
-    async function startUpload() {
-      if (!selectedFile) return;
-      const progressContainer = document.getElementById('progress-container');
-      progressContainer.classList.remove('hidden');
-
-      const storageRef = storage.ref('videos/' + Date.now() + '_' + selectedFile.name);
-      const uploadTask = storageRef.put(selectedFile);
-
-      uploadTask.on('state_changed', 
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          document.getElementById('upload-progress').style.width = progress + '%';
-          document.getElementById('progress-text').textContent = Math.round(progress) + '%';
-        },
-        (error) => console.error(error),
-        async () => {
-          const videoUrl = await uploadTask.snapshot.ref.getDownloadURL();
-          await db.collection('videos').add({
-            videoUrl: videoUrl,
-            userId: currentUser.uid,
-            nickname: currentNickname,
-            userPhoto: currentUser.photoURL,
-            createdAt: new Date(),
-            likes: []
-          });
-          alert('Vídeo publicado com sucesso!');
-          showPage('feed');
-        }
-      );
     }
 
-    // ==================== NAVEGAÇÃO ENTRE PÁGINAS ====================
-    function showPage(page) {
-      // Esconde todas as páginas
-      document.querySelectorAll('#main-content > div').forEach(div => div.classList.add('hidden'));
-      // Mostra a página solicitada
-      if (page === 'feed') loadFeed();
-      else if (page === 'upload') document.getElementById('upload-page').classList.remove('hidden');
-      else if (page === 'chat') document.getElementById('chat-page').classList.remove('hidden');
-      else if (page === 'dm') document.getElementById('dm-page').classList.remove('hidden');
-      else if (page === 'explore') document.getElementById('explore-page').classList.remove('hidden');
-      else if (page === 'store') document.getElementById('store-page').classList.remove('hidden');
-    }
-
-    function toggleMobileSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      sidebar.style.display = sidebar.style.display === 'none' ? 'flex' : 'none';
-    }
-
-    // ==================== INICIALIZAÇÃO ====================
-    window.onload = () => {
-      auth.onAuthStateChanged(user => {
-        if (user) {
-          currentUser = user;
-          checkUserProfile();
-        } else {
-          showAuthModal();
-        }
-      });
-
-      // Carrega feed por padrão
-      setTimeout(() => {
-        if (currentUser) loadFeed();
-      }, 800);
-
-      // Tailwind script já carregado via CDN
+    // ==================== UPLOAD ====================
+    let selectedVideoFile = null;
+    document.getElementById('drop-zone').onclick = () => document.getElementById('video-input').click();
+    document.getElementById('video-input').onchange = e => {
+      selectedVideoFile = e.target.files[0];
+      document.getElementById('upload-button').classList.remove('hidden');
     };
 
-    // Funções auxiliares (chat, dm, etc.) podem ser expandidas posteriormente
-    function sendChatMessage() {
-      alert("Mensagem enviada para o chat global (implementação completa no React)");
+    async function uploadVideo() {
+      if (!selectedVideoFile) return;
+      const progressContainer = document.getElementById('upload-progress-bar');
+      progressContainer.classList.remove('hidden');
+
+      const storageRef = storage.ref('videos/' + Date.now() + '_' + selectedVideoFile.name);
+      const task = storageRef.put(selectedVideoFile);
+
+      task.on('state_changed', snapshot => {
+        const percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        document.getElementById('progress-fill').style.width = percent + '%';
+        document.getElementById('progress-text').textContent = Math.round(percent) + '%';
+      }, err => console.error(err), async () => {
+        const url = await task.snapshot.ref.getDownloadURL();
+        await db.collection('videos').add({
+          videoUrl: url,
+          userId: currentUser.uid,
+          nickname: currentNickname,
+          userPhoto: currentUser.photoURL,
+          createdAt: new Date(),
+          likes: []
+        });
+        alert('Vídeo publicado! Feed atualizado em tempo real.');
+        showPage('feed');
+      });
+    }
+
+    // ==================== CHAT GLOBAL ====================
+    function loadGlobalChat() {
+      const messagesDiv = document.getElementById('chat-messages');
+      db.collection('chat').orderBy('timestamp').onSnapshot(snap => {
+        messagesDiv.innerHTML = '';
+        snap.forEach(doc => {
+          const m = doc.data();
+          messagesDiv.innerHTML += `<div class="flex gap-3"><div><strong>@${m.nickname}</strong>: ${m.text}</div></div>`;
+        });
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      });
+    }
+
+    async function sendGlobalMessage() {
+      const input = document.getElementById('chat-input');
+      if (!input.value.trim()) return;
+      await db.collection('chat').add({
+        text: input.value,
+        nickname: currentNickname,
+        timestamp: new Date()
+      });
+      input.value = '';
+    }
+
+    // ==================== DM (Mensagens Privadas) ====================
+    async function loadDMList() {
+      // Simulação + real (expanda conforme necessidade)
+      const list = document.getElementById('dm-list');
+      list.innerHTML = `<div onclick="openDM('demo-user')" class="p-4 bg-zinc-800 rounded-2xl cursor-pointer">@usuarioexemplo</div>`;
+    }
+
+    function openDM(user) {
+      currentDMId = 'demo-conversation';
+      document.getElementById('dm-chat-header').innerHTML = `Conversando com @${user}`;
+      // Carregar mensagens reais aqui via Firestore
+    }
+
+    // ==================== EXPLORE & NOTIFICAÇÕES ====================
+    function loadExplore() {
+      const grid = document.getElementById('explore-grid');
+      grid.innerHTML = `<div class="bg-zinc-900 rounded-3xl p-6 text-center">Conteúdo popular aqui (vídeos/usuários)</div>`;
     }
 
     function showNotifications() {
-      alert("Notificações:\n• Novo like no seu vídeo\n• @fulano comentou");
+      alert("Notificações:\n• Alguém curtiu seu vídeo\n• Nova solicitação de DM\n• Comentário no seu post");
     }
 
-    function showProfileMenu() {
-      alert("Menu do perfil: Configurações, Editar perfil, Sair");
+    function showProfile() {
+      alert("Perfil do usuário (editar, configurações, etc.)");
     }
 
-    function addModule() {
-      alert("Funcionalidade de adicionar módulo via drag & drop (melhor implementada em React + dnd-kit)");
-    }
+    // ==================== START ====================
+    window.onload = initApp;
   </script>
 </body>
 </html>
