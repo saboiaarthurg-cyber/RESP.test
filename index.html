@@ -3,60 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RESP – Sistema de Sincronização</title>
+    <title>RESP – Sistema Integrado</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-storage-compat.js"></script>
 
     <style>
-        :root { --primary: #065fd4; --bg: #f9f9f9; --danger: #cc0000; --border: #e5e5e5; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg); overflow-x: hidden; }
+        :root { --primary: #065fd4; --bg: #f9f9f9; --text: #0f0f0f; --border: #e5e5e5; --danger: #cc0000; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: var(--bg); color: var(--text); overflow-x: hidden; }
 
-        /* TELAS DE BLOQUEIO */
+        /* TELAS DE BLOQUEIO / MODAIS */
         #authOverlay, #setupOverlay, #settingsModal { position: fixed; inset: 0; background: white; z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
         #setupOverlay, #settingsModal { display: none; background: rgba(255,255,255,0.98); }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 400px; width: 100%; }
+        .card { background: white; padding: 35px; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 450px; width: 100%; }
         
-        /* HEADER E SIDEBAR */
+        /* HEADER */
         header { height: 56px; background: white; display: flex; align-items: center; padding: 0 16px; border-bottom: 1px solid var(--border); position: fixed; width: 100%; z-index: 100; justify-content: space-between; }
+        
+        /* SIDEBAR E ÁREA DE DROP */
         .sidebar { position: fixed; left: -260px; top: 0; width: 260px; height: 100%; background: white; transition: 0.3s; z-index: 101; padding: 80px 20px; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
         .sidebar.active { left: 0; }
-        
-        /* ÁREA DE DROP (IMPORTANTE) */
-        #moduleList { flex-grow: 1; min-height: 200px; border: 2px dashed transparent; border-radius: 15px; padding: 10px; transition: 0.3s; }
+        #moduleList { flex-grow: 1; list-style: none; min-height: 300px; border: 2px dashed transparent; border-radius: 15px; }
         #moduleList.drag-over { border-color: var(--primary); background: #f0f7ff; }
+        .module-item { padding: 15px; border-radius: 12px; cursor: pointer; margin-bottom: 8px; background: #f2f2f2; font-weight: 600; text-align: center; transition: 0.2s; }
+        .module-item:hover { background: #e5e5e5; }
 
-        .module-item { padding: 15px; border-radius: 12px; cursor: pointer; margin-bottom: 8px; background: #f2f2f2; font-weight: 600; list-style: none; text-align: center; }
+        /* BOTÕES GERAIS */
+        .btn { padding: 12px 24px; border-radius: 25px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: var(--primary); color: white; width: 100%; margin-top: 10px; }
+        .btn-danger { background: var(--danger); color: white; width: 100%; }
+        .btn-outline { background: none; border: 1px solid #ccc; width: 100%; margin-top: 10px; }
 
-        /* BARRA DE ARRASTAR (PRETA) */
-        #dragPanel { position: fixed; bottom: 0; width: 100%; background: #000; color: white; padding: 20px; display: none; gap: 15px; justify-content: center; z-index: 2000; align-items: center; }
-        .drag-box { padding: 10px 20px; background: #333; border-radius: 8px; cursor: grab; font-weight: bold; border: 1px solid #444; }
-
-        /* BOTÕES */
-        .btn { padding: 12px 25px; border-radius: 25px; border: none; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
-
+        /* CONTEÚDO PRINCIPAL */
+        main { padding: 80px 20px; max-width: 1200px; margin: 0 auto; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        
         /* VÍDEOS */
-        main { padding: 80px 20px; max-width: 1100px; margin: 0 auto; }
-        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
-        .video-card { background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
-        .thumb video { width: 100%; aspect-ratio: 16/9; background: #000; object-fit: cover; }
+        .video-card { background: white; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; }
+        .thumb { width: 100%; aspect-ratio: 16/9; background: #000; }
+        .thumb video { width: 100%; height: 100%; object-fit: cover; }
+        #postForm { background: #fff; border: 1px solid var(--border); padding: 25px; border-radius: 16px; margin-bottom: 30px; display: none; flex-direction: column; gap: 10px; }
+
+        /* CHAT */
+        #chatView { display: none; flex-direction: column; height: 70vh; background: white; border-radius: 15px; border: 1px solid var(--border); overflow: hidden; }
+        #chatMsgs { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 15px; max-width: 70%; font-size: 14px; }
+        .msg.sent { align-self: flex-end; background: var(--primary); color: white; }
+        .msg.received { align-self: flex-start; background: #eee; }
+
+        /* BARRA DE PERSONALIZAÇÃO INFERIOR */
+        #dragPanel { position: fixed; bottom: 0; width: 100%; background: #000; color: white; padding: 20px; display: none; gap: 15px; justify-content: center; z-index: 2000; align-items: center; }
+        .drag-item { padding: 10px 20px; background: #333; border-radius: 8px; cursor: grab; font-weight: bold; border: 1px solid #444; }
+
+        .overlay-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; z-index: 100; }
+        .overlay-bg.active { display: block; }
     </style>
 </head>
 <body>
 
     <div id="authOverlay">
-        <h1>RESP</h1>
-        <button class="btn btn-primary" style="max-width:250px" onclick="signIn()">Entrar com Google</button>
+        <h1 style="font-size: 48px;">RESP</h1>
+        <p style="margin-bottom: 20px;">Sua rede sincronizada em qualquer lugar.</p>
+        <button class="btn btn-outline" onclick="signIn()" style="max-width:280px">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Entrar com Google
+        </button>
     </div>
 
     <div id="setupOverlay">
         <div class="card">
-            <h2>Quase pronto!</h2>
-            <input type="text" id="userNick" placeholder="Seu Nickname" style="width:100%; padding:12px; margin:15px 0; border-radius:10px; border:1px solid #ddd;">
+            <h2>Bem-vindo!</h2>
+            <p>Escolha como o mundo vai te ver:</p>
+            <input type="text" id="userNick" placeholder="Seu Nickname" style="width:100%; padding:12px; margin:15px 0; border:1px solid #ddd; border-radius:8px;">
             <button class="btn btn-primary" onclick="finishSetup()">Criar Perfil</button>
         </div>
     </div>
@@ -65,42 +84,71 @@
         <div class="card">
             <h3>Configurações ⚙️</h3>
             <button class="btn btn-primary" onclick="showDragPanel()">Personalizar Barra Lateral</button>
-            <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
+            <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
                 <button class="btn btn-danger" onclick="signOut()">Sair da Conta</button>
-                <button class="btn" style="color:red; background:none;" onclick="deleteAccount()">Excluir Conta</button>
+                <button class="btn" style="color:red; background:none; font-size:12px;" onclick="deleteAccount()">Excluir conta permanentemente</button>
             </div>
-            <button class="btn" onclick="closeSettings()" style="background:#eee">Fechar</button>
+            <button class="btn btn-outline" onclick="closeSettings()">Fechar</button>
         </div>
     </div>
 
     <header>
-        <button onclick="toggleSidebar()" style="background:none; border:none; font-size:24px; cursor:pointer;">☰</button>
-        <h3 id="topNick">RESP</h3>
-        <button onclick="openSettings()" style="background:none; border:none; font-size:20px;">⚙️</button>
+        <div style="display: flex; align-items: center;">
+            <button onclick="toggleSidebar()" style="background:none; border:none; font-size:24px; cursor:pointer;">☰</button>
+            <h3 style="margin-left: 15px;">RESP</h3>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span id="displayNick" style="font-weight: bold; color: var(--primary);"></span>
+            <button onclick="openSettings()" style="background:none; border:none; font-size:20px;">⚙️</button>
+        </div>
     </header>
 
+    <div class="overlay-bg" id="overlayBg" onclick="toggleSidebar()"></div>
+
     <aside class="sidebar" id="sidebar">
-        <p style="font-size: 11px; color: gray; margin-bottom: 10px;">SEU MENU</p>
+        <p style="font-size: 10px; color: gray; margin-bottom: 15px; letter-spacing: 1px;">MEU MENU</p>
         <ul id="moduleList"></ul>
     </aside>
 
     <main>
-        <div id="videoSection" style="display:none;">
-            <h1>Vídeos Global</h1>
-            <div class="video-grid" id="videoGrid"></div>
-        </div>
-        <div id="defaultSection">
+        <div id="viewDefault">
             <h1 id="viewTitle">Início</h1>
-            <p>Seja bem-vindo, <span id="welcomeNick"></span>!</p>
+            <p id="viewDesc">Use o menu lateral para navegar ou personalize nas configurações.</p>
+            <div class="grid" id="mainGrid"></div>
+        </div>
+
+        <div id="viewVideos" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h1>Vídeos</h1>
+                <button class="btn btn-primary" style="width:auto" onclick="togglePostForm()">+ Postar</button>
+            </div>
+            <div id="postForm">
+                <input type="text" id="vTitle" placeholder="Título">
+                <input type="file" id="vFile" accept="video/*">
+                <button class="btn btn-primary" id="upBtn" onclick="uploadVideo()">Publicar</button>
+                <p id="upStatus" style="display:none; color: var(--primary);">Enviando vídeo...</p>
+            </div>
+            <div class="grid" id="videoGrid"></div>
+        </div>
+
+        <div id="viewChat" style="display:none;">
+            <h1>Chat Global</h1>
+            <div id="chatView">
+                <div id="chatMsgs"></div>
+                <div style="display:flex; padding:15px; background:#f9f9f9; border-top:1px solid #eee;">
+                    <input type="text" id="chatInput" placeholder="Mensagem..." style="flex-grow:1; padding:10px; border-radius:20px; border:1px solid #ddd; outline:none; margin-right:10px;">
+                    <button class="btn btn-primary" style="width:auto;" onclick="sendMsg()">Enviar</button>
+                </div>
+            </div>
         </div>
     </main>
 
     <div id="dragPanel">
-        <span style="font-size: 13px;">Arraste para a esquerda:</span>
-        <div class="drag-box" draggable="true" ondragstart="drag(event)">Vídeos</div>
-        <div class="drag-box" draggable="true" ondragstart="drag(event)">Chat</div>
-        <div class="drag-box" draggable="true" ondragstart="drag(event)">Loja</div>
-        <button onclick="hideDragPanel()" style="background: white; border: none; padding: 5px 15px; border-radius: 15px; font-weight: bold; cursor: pointer;">Pronto</button>
+        <span style="font-size: 12px;">Arraste para a Sidebar:</span>
+        <div class="drag-item" draggable="true" ondragstart="drag(event)">Vídeos</div>
+        <div class="drag-item" draggable="true" ondragstart="drag(event)">Chat</div>
+        <div class="drag-item" draggable="true" ondragstart="drag(event)">Loja</div>
+        <button onclick="hideDragPanel()" style="background:white; border:none; padding:5px 15px; border-radius:15px; font-weight:bold; cursor:pointer;">Concluído</button>
     </div>
 
     <script>
@@ -116,10 +164,11 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        const storage = firebase.storage();
 
-        let userData = { nick: '', modules: ['Início'] };
+        let myData = { nick: '', modules: ['Início'] };
 
-        // --- AUTH ---
+        // --- AUTH & SYNC ---
         async function signIn() {
             const provider = new firebase.auth.GoogleAuthProvider();
             await auth.signInWithPopup(provider);
@@ -132,8 +181,8 @@
                 document.getElementById('authOverlay').style.display = 'none';
                 const doc = await db.collection("users").doc(user.uid).get();
                 if (doc.exists()) {
-                    userData = doc.data();
-                    loadUI();
+                    myData = doc.data();
+                    renderSidebar();
                 } else {
                     document.getElementById('setupOverlay').style.display = 'flex';
                 }
@@ -142,87 +191,133 @@
             }
         });
 
-        // --- SETUP ---
         async function finishSetup() {
             const nick = document.getElementById('userNick').value;
             if(!nick) return alert("Escolha um nick!");
-            userData = { nick: nick, modules: ['Início'] };
-            await db.collection("users").doc(auth.currentUser.uid).set(userData);
+            myData = { nick: nick, modules: ['Início'] };
+            await db.collection("users").doc(auth.currentUser.uid).set(myData);
             document.getElementById('setupOverlay').style.display = 'none';
-            loadUI();
+            renderSidebar();
         }
 
-        // --- UI & SYNC ---
-        function loadUI() {
-            document.getElementById('topNick').innerText = userData.nick;
-            document.getElementById('welcomeNick').innerText = userData.nick;
+        function renderSidebar() {
+            document.getElementById('displayNick').innerText = myData.nick;
             const list = document.getElementById('moduleList');
             list.innerHTML = "";
-            userData.modules.forEach(m => {
+            myData.modules.forEach(m => {
                 const li = document.createElement('li');
                 li.className = "module-item";
                 li.innerText = m;
-                li.onclick = () => { 
-                    document.getElementById('viewTitle').innerText = m;
-                    document.getElementById('videoSection').style.display = (m === 'Vídeos') ? 'block' : 'none';
-                    document.getElementById('defaultSection').style.display = (m === 'Vídeos') ? 'none' : 'block';
-                    if(m === 'Vídeos') loadVideos();
-                };
+                li.onclick = () => changeTab(m);
                 list.appendChild(li);
             });
         }
 
-        // --- DRAG AND DROP (CORRIGIDO) ---
-        function drag(e) { e.dataTransfer.setData("text", e.target.innerText); }
-        
-        const moduleListArea = document.getElementById('moduleList');
-
-        moduleListArea.ondragover = (e) => {
-            e.preventDefault();
-            moduleListArea.classList.add('drag-over');
-        };
-
-        moduleListArea.ondragleave = () => {
-            moduleListArea.classList.remove('drag-over');
-        };
-
-        moduleListArea.ondrop = async (e) => {
-            e.preventDefault();
-            moduleListArea.classList.remove('drag-over');
-            const modName = e.dataTransfer.getData("text");
+        // --- NAVEGAÇÃO ---
+        function changeTab(name) {
+            document.getElementById('viewDefault').style.display = (name === 'Início') ? 'block' : 'none';
+            document.getElementById('viewVideos').style.display = (name === 'Vídeos') ? 'block' : 'none';
+            document.getElementById('viewChat').style.display = (name === 'Chat') ? 'block' : 'none';
             
-            if (modName && !userData.modules.includes(modName)) {
-                userData.modules.push(modName);
-                // Salva na nuvem na hora!
-                await db.collection("users").doc(auth.currentUser.uid).update({
-                    modules: userData.modules
-                });
-                loadUI();
+            if(name === 'Vídeos') loadVideos();
+            if(name === 'Chat') loadChat();
+            if(window.innerWidth < 768) toggleSidebar();
+        }
+
+        // --- DRAG & DROP (FIXED) ---
+        function drag(e) { e.dataTransfer.setData("text", e.target.innerText); }
+        const sidebar = document.getElementById('moduleList');
+        sidebar.ondragover = (e) => { e.preventDefault(); sidebar.classList.add('drag-over'); };
+        sidebar.ondragleave = () => { sidebar.classList.remove('drag-over'); };
+        sidebar.ondrop = async (e) => {
+            e.preventDefault();
+            sidebar.classList.remove('drag-over');
+            const mod = e.dataTransfer.getData("text");
+            if(!myData.modules.includes(mod)) {
+                myData.modules.push(mod);
+                await db.collection("users").doc(auth.currentUser.uid).update({ modules: myData.modules });
+                renderSidebar();
             }
         };
 
-        // --- CONFIGS ---
+        // --- VÍDEOS ---
+        function togglePostForm() {
+            const f = document.getElementById('postForm');
+            f.style.display = (f.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        async function uploadVideo() {
+            const file = document.getElementById('vFile').files[0];
+            if(!file) return alert("Selecione um arquivo!");
+            document.getElementById('upStatus').style.display = 'block';
+            
+            const ref = storage.ref(`videos/${Date.now()}_${file.name}`);
+            await ref.put(file);
+            const url = await ref.getDownloadURL();
+            
+            await db.collection("videos").add({
+                title: document.getElementById('vTitle').value || "Sem título",
+                url: url,
+                author: myData.nick,
+                time: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            location.reload();
+        }
+
+        function loadVideos() {
+            const grid = document.getElementById('videoGrid');
+            grid.innerHTML = "Carregando...";
+            db.collection("videos").orderBy("time", "desc").onSnapshot(snap => {
+                grid.innerHTML = "";
+                snap.forEach(doc => {
+                    const v = doc.data();
+                    grid.innerHTML += `<div class="video-card">
+                        <div class="thumb"><video src="${v.url}#t=0.5" controls></video></div>
+                        <div style="padding:15px"><b>${v.title}</b><br><small>Por ${v.author}</small></div>
+                    </div>`;
+                });
+            });
+        }
+
+        // --- CHAT ---
+        function loadChat() {
+            const msgs = document.getElementById('chatMsgs');
+            db.collection("chat").orderBy("time", "asc").limit(50).onSnapshot(snap => {
+                msgs.innerHTML = "";
+                snap.forEach(doc => {
+                    const m = doc.data();
+                    const div = document.createElement('div');
+                    div.className = `msg ${m.nick === myData.nick ? 'sent' : 'received'}`;
+                    div.innerHTML = `<b>${m.nick}</b><br>${m.text}`;
+                    msgs.appendChild(div);
+                });
+                msgs.scrollTop = msgs.scrollHeight;
+            });
+        }
+
+        async function sendMsg() {
+            const input = document.getElementById('chatInput');
+            if(!input.value) return;
+            await db.collection("chat").add({
+                text: input.value,
+                nick: myData.nick,
+                time: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            input.value = "";
+        }
+
+        // --- UTILS ---
         function openSettings() { document.getElementById('settingsModal').style.display = 'flex'; }
         function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
         function showDragPanel() { 
             closeSettings();
             document.getElementById('dragPanel').style.display = 'flex';
-            if(window.innerWidth < 768) toggleSidebar(); 
-            // Abre a sidebar automaticamente para ajudar o arraste
             document.getElementById('sidebar').classList.add('active');
         }
         function hideDragPanel() { document.getElementById('dragPanel').style.display = 'none'; }
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
-
-        async function loadVideos() {
-            const grid = document.getElementById('videoGrid');
-            grid.innerHTML = "Carregando feed...";
-            const snap = await db.collection("videos").orderBy("time", "desc").limit(10).get();
-            grid.innerHTML = "";
-            snap.forEach(doc => {
-                const v = doc.data();
-                grid.innerHTML += `<div class="video-card"><div class="thumb"><video src="${v.url}#t=0.1" controls></video></div><div style="padding:10px"><b>${v.title}</b></div></div>`;
-            });
+        function toggleSidebar() { 
+            document.getElementById('sidebar').classList.toggle('active'); 
+            document.getElementById('overlayBg').classList.toggle('active'); 
         }
     </script>
 </body>
