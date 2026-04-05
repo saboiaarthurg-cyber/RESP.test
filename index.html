@@ -14,60 +14,226 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); color: var(--text); }
 
-        /* TELAS DE LOGIN E SETUP */
+        /* TELAS DE BLOQUEIO (LOGIN E SETUP) */
         #authOverlay, #setupOverlay { position: fixed; inset: 0; background: white; z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
         #setupOverlay { display: none; background: #f0f7ff; }
-        .btn-google { background: white; border: 1px solid #ccc; padding: 15px 30px; border-radius: 30px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         
-        .setup-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 400px; width: 100%; }
-        .option-btn { display: block; width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 10px; cursor: pointer; background: none; font-weight: bold; transition: 0.2s; }
+        .btn-google { background: white; border: 1px solid #ccc; padding: 15px 30px; border-radius: 30px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .setup-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 450px; width: 100%; }
+        
+        .option-btn { display: block; width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #ddd; border-radius: 12px; cursor: pointer; background: none; font-weight: bold; font-size: 16px; transition: 0.2s; }
         .option-btn.selected { border-color: var(--primary); background: #eef4ff; color: var(--primary); }
 
-        /* APP LAYOUT */
-        header { height: 56px; background: white; display: flex; align-items: center; padding: 0 16px; border-bottom: 1px solid var(--border); position: fixed; width: 100%; z-index: 100; }
-        .sidebar { position: fixed; left: -260px; top: 0; width: 260px; height: 100%; background: white; transition: 0.3s; z-index: 101; padding: 80px 20px; border-right: 1px solid var(--border); }
+        /* LAYOUT PRINCIPAL */
+        header { height: 56px; background: white; display: flex; align-items: center; padding: 0 16px; border-bottom: 1px solid var(--border); position: fixed; width: 100%; z-index: 100; justify-content: space-between; }
+        .sidebar { position: fixed; left: -260px; top: 0; width: 260px; height: 100%; background: white; transition: 0.3s; z-index: 101; padding: 80px 20px; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
         .sidebar.active { left: 0; }
-        .module-item { padding: 12px; border-radius: 8px; cursor: pointer; margin-bottom: 8px; background: #f2f2f2; font-weight: 500; }
+        .module-item { padding: 12px; border-radius: 8px; cursor: pointer; margin-bottom: 8px; background: #f2f2f2; font-weight: 600; text-align: center; }
         
         main { padding: 80px 20px; max-width: 1000px; margin: 0 auto; }
-        
-        /* SISTEMA DE CHAT */
-        .chat-container { display: flex; flex-direction: column; height: 60vh; background: white; border-radius: 15px; border: 1px solid var(--border); overflow: hidden; }
-        .chat-messages { flex-grow: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 10px 15px; border-radius: 15px; max-width: 70%; font-size: 14px; }
-        .msg.sent { align-self: flex-end; background: var(--primary); color: white; }
-        .msg.received { align-self: flex-start; background: #eee; }
-        .chat-input { display: flex; border-top: 1px solid var(--border); padding: 10px; }
-        .chat-input input { flex-grow: 1; padding: 10px; border: none; outline: none; }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; z-index: 100; }
+        .overlay.active { display: block; }
+
+        /* VÍDEOS */
+        .content-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .video-card { background: white; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; }
+        .thumbnail { width: 100%; aspect-ratio: 16/9; background: #000; }
+        .thumbnail video { width: 100%; height: 100%; object-fit: cover; }
+
+        /* CHAT */
+        #chatView { display: none; flex-direction: column; height: 70vh; background: white; border-radius: 15px; border: 1px solid var(--border); overflow: hidden; }
+        .chat-messages { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 15px; max-width: 80%; font-size: 14px; line-height: 1.4; }
+        .msg.sent { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 2px; }
+        .msg.received { align-self: flex-start; background: #eee; border-bottom-left-radius: 2px; }
+        .chat-input { display: flex; border-top: 1px solid var(--border); padding: 15px; background: #fff; }
+        .chat-input input { flex-grow: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; outline: none; margin-right: 10px; }
     </style>
 </head>
 <body>
 
     <div id="authOverlay">
-        <h1 style="font-size: 40px; margin-bottom: 10px;">RESP</h1>
-        <p style="margin-bottom: 30px; color: gray;">Sua rede, suas regras.</p>
+        <h1 style="font-size: 48px; letter-spacing: -2px; margin-bottom: 10px;">RESP</h1>
+        <p style="margin-bottom: 30px; color: #666;">Entre para personalizar sua experiência global.</p>
         <button class="btn-google" onclick="signIn()">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_HiRes_Logo.png" width="20" alt="">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
             Entrar com Google
         </button>
     </div>
 
     <div id="setupOverlay">
         <div class="setup-card">
-            <h2>Bem-vindo!</h2>
-            <p style="margin: 15px 0;">O que você mais gosta de fazer?</p>
-            <button class="option-btn" onclick="toggleOption(this, 'Vídeos')">📺 Ver Vídeos</button>
-            <button class="option-btn" onclick="toggleOption(this, 'Chat')">💬 Conversar com Amigos</button>
-            <button class="option-btn" onclick="toggleOption(this, 'Jogos')">🎮 Jogar Online</button>
-            <button class="btn-google" style="background: var(--primary); color: white; margin-top: 20px; width: 100%; justify-content: center;" onclick="saveSetup()">Começar a Usar</button>
+            <h2 id="welcomeText">Olá!</h2>
+            <p style="margin: 15px 0; color: #555;">Do que você mais gosta? Vamos montar sua barra lateral.</p>
+            <button class="option-btn" onclick="toggleOption(this, 'Vídeos')">📺 Ver e Postar Vídeos</button>
+            <button class="option-btn" onclick="toggleOption(this, 'Chat')">💬 Conversar no Chat Global</button>
+            <button class="option-btn" onclick="toggleOption(this, 'Jogos')">🎮 Jogos e Diversão</button>
+            <button class="btn-google" style="background: var(--primary); color: white; margin-top: 20px; width: 100%; justify-content: center;" onclick="saveUserSetup()">Finalizar Configuração</button>
         </div>
     </div>
 
     <header>
-        <button onclick="toggleSidebar()" style="background:none; border:none; font-size:24px; cursor:pointer;">☰</button>
-        <h3 id="userDisplay" style="margin-left:15px;">RESP</h3>
+        <div style="display: flex; align-items: center;">
+            <button onclick="toggleSidebar()" style="background:none; border:none; font-size:24px; cursor:pointer;">☰</button>
+            <h3 style="margin-left:15px; font-weight: 800;">RESP</h3>
+        </div>
+        <span id="userName" style="font-size: 12px; color: gray;"></span>
     </header>
 
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
     <aside class="sidebar" id="sidebar">
-        <ul id="moduleList"></ul>
-        <button onclick="signOut()" style="margin-top:2
+        <ul id="moduleList">
+            <li class="module-item" onclick="changeContent('Início')">Início</li>
+        </ul>
+        <button onclick="signOut()" style="margin-top:auto; padding: 10px; border:none; background:#ff4444; color:white; border-radius:8px; cursor:pointer; font-weight:bold;">Sair da Conta</button>
+    </aside>
+
+    <main>
+        <div id="defaultView">
+            <h1 id="pageTitle">Bem-vindo</h1>
+            <div id="videoContainer" style="margin-top: 20px;">
+                <div class="content-grid" id="grid"></div>
+            </div>
+        </div>
+
+        <div id="chatView">
+            <div class="chat-messages" id="chatMsgs"></div>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="Digite uma mensagem global...">
+                <button class="btn-google" style="padding: 10px 20px;" onclick="sendMessage()">Enviar</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // CONFIGURAÇÃO DO SEU PROJETO RESP-F1
+        const firebaseConfig = {
+            apiKey: "AIzaSyAvZl2jk8i8n0e9844cxw6mGdCWXB6CZ_w",
+            authDomain: "resp-f1.firebaseapp.com",
+            projectId: "resp-f1",
+            storageBucket: "resp-f1.firebasestorage.app",
+            messagingSenderId: "616016136217",
+            appId: "1:616016136217:web:ec3642b797375ce0134288"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        let currentUser = null;
+        let selectedModules = [];
+
+        // --- SISTEMA DE AUTENTICAÇÃO ---
+        async function signIn() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                await auth.signInWithPopup(provider);
+            } catch (error) {
+                alert("Erro ao entrar: " + error.message);
+            }
+        }
+
+        function signOut() { auth.signOut().then(() => location.reload()); }
+
+        // Monitor de Usuário
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('authOverlay').style.display = 'none';
+                document.getElementById('userName').innerText = "Logado como: " + user.displayName;
+                
+                // Busca no banco se ele já tem perfil
+                const userDoc = await db.collection("users").doc(user.uid).get();
+                if (!userDoc.exists()) {
+                    document.getElementById('setupOverlay').style.display = 'flex';
+                    document.getElementById('welcomeText').innerText = "Olá, " + user.displayName.split(' ')[0] + "!";
+                } else {
+                    renderUserModules(userDoc.data().modules);
+                }
+            } else {
+                document.getElementById('authOverlay').style.display = 'flex';
+            }
+        });
+
+        // --- SETUP INICIAL ---
+        function toggleOption(btn, moduleName) {
+            btn.classList.toggle('selected');
+            if (selectedModules.includes(moduleName)) {
+                selectedModules = selectedModules.filter(m => m !== moduleName);
+            } else {
+                selectedModules.push(moduleName);
+            }
+        }
+
+        async function saveUserSetup() {
+            if (selectedModules.length === 0) return alert("Escolha pelo menos uma coisa!");
+            
+            await db.collection("users").doc(currentUser.uid).set({
+                name: currentUser.displayName,
+                email: currentUser.email,
+                modules: selectedModules
+            });
+
+            document.getElementById('setupOverlay').style.display = 'none';
+            renderUserModules(selectedModules);
+        }
+
+        function renderUserModules(modules) {
+            const mList = document.getElementById('moduleList');
+            mList.innerHTML = '<li class="module-item" onclick="changeContent(\'Início\')">Início</li>';
+            modules.forEach(m => {
+                const li = document.createElement('li');
+                li.className = 'module-item';
+                li.innerText = m;
+                li.onclick = () => changeContent(m);
+                mList.appendChild(li);
+            });
+        }
+
+        // --- NAVEGAÇÃO E CHAT ---
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+
+        function changeContent(name) {
+            document.getElementById('pageTitle').innerText = name;
+            document.getElementById('defaultView').style.display = (name === 'Chat') ? 'none' : 'block';
+            document.getElementById('chatView').style.display = (name === 'Chat') ? 'flex' : 'none';
+            
+            if (name === 'Chat') loadChat();
+            if (window.innerWidth < 768) toggleSidebar();
+        }
+
+        // --- LÓGICA DO CHAT GLOBAL ---
+        function loadChat() {
+            const chatMsgs = document.getElementById('chatMsgs');
+            db.collection("messages").orderBy("time", "asc").limit(50).onSnapshot(snap => {
+                chatMsgs.innerHTML = "";
+                snap.forEach(doc => {
+                    const m = doc.data();
+                    const div = document.createElement('div');
+                    div.className = `msg ${m.uid === currentUser.uid ? 'sent' : 'received'}`;
+                    div.innerHTML = `<strong>${m.name}:</strong><br>${m.text}`;
+                    chatMsgs.appendChild(div);
+                });
+                chatMsgs.scrollTop = chatMsgs.scrollHeight;
+            });
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            if (!input.value) return;
+            
+            await db.collection("messages").add({
+                text: input.value,
+                name: currentUser.displayName,
+                uid: currentUser.uid,
+                time: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            input.value = "";
+        }
+    </script>
+</body>
+</html>
