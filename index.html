@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RESP – Sistema Completo e Modular</title>
+    <title>RESP – Plataforma Definitiva</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -12,37 +12,39 @@
 
     <style>
         :root { 
-            --primary: #065fd4; 
-            --bg: #f9f9f9; 
-            --text: #0f0f0f; 
-            --border: #e5e5e5; 
-            --danger: #cc0000;
-            --sidebar-w: 280px;
+            --primary: #065fd4; --bg: #f9f9f9; --text: #0f0f0f; 
+            --border: #e5e5e5; --danger: #cc0000; --sidebar-w: 280px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
         body { background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; width: 100vw; }
 
-        /* --- TELAS DE SISTEMA --- */
-        #authOverlay, #setupOverlay, #settingsModal { 
+        /* --- TELAS DE AUTH E SETUP --- */
+        .full-overlay { 
             position: fixed; inset: 0; background: white; z-index: 10000; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; 
         }
-        #setupOverlay, #settingsModal { display: none; background: rgba(255,255,255,0.98); }
+        .hidden { display: none !important; }
         
         .card { 
             background: white; padding: 40px; border-radius: 28px; 
-            box-shadow: 0 15px 50px rgba(0,0,0,0.1); max-width: 450px; width: 100%; text-align: center;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.1); max-width: 450px; width: 100%; 
         }
 
-        /* --- HEADER --- */
+        .input-group { margin-bottom: 15px; text-align: left; width: 100%; }
+        input { 
+            width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #ddd; 
+            font-size: 16px; outline: none; transition: 0.2s;
+        }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(6,95,212,0.1); }
+
+        /* --- LAYOUT --- */
         header { 
             height: 60px; background: white; display: flex; align-items: center; 
             padding: 0 20px; border-bottom: 1px solid var(--border); 
             position: fixed; width: 100%; z-index: 1000; justify-content: space-between; 
         }
 
-        /* --- SIDEBAR (BARRA LATERAL ESQUERDA) --- */
         .sidebar { 
             position: fixed; left: calc(-1 * var(--sidebar-w)); top: 0; 
             width: var(--sidebar-w); height: 100%; background: white; 
@@ -50,154 +52,161 @@
             padding: 80px 15px 20px; border-right: 1px solid var(--border); 
             display: flex; flex-direction: column; 
         }
-        .sidebar.active { left: 0; box-shadow: 10px 0 30px rgba(0,0,0,0.1); }
+        .sidebar.active { left: 0; box-shadow: 15px 0 40px rgba(0,0,0,0.1); }
 
+        /* ÁREA DE LISTAGEM E DROP */
         #moduleList { 
             flex-grow: 1; list-style: none; padding: 10px; border: 2px dashed transparent; 
-            border-radius: 20px; transition: 0.3s; overflow-y: auto;
+            border-radius: 20px; overflow-y: auto;
         }
         #moduleList.drag-over { border-color: var(--primary); background: #f0f7ff; }
 
         .module-item { 
             padding: 16px; border-radius: 14px; cursor: pointer; margin-bottom: 10px; 
-            background: #f2f2f2; font-weight: 600; text-align: center; transition: 0.2s;
-            border: 1px solid transparent;
-        }
-        .module-item:hover { background: #e8e8e8; transform: scale(1.02); }
-
-        /* BOTÃO DE ABRIR PERSONALIZAÇÃO (AS 3 BARRINHAS LÁ EMBAIXO) */
-        .btn-open-custom {
-            margin-top: auto; padding: 15px; background: #eee; border-radius: 12px;
-            cursor: pointer; text-align: center; font-weight: bold; display: flex;
-            align-items: center; justify-content: center; gap: 10px;
+            background: #f2f2f2; font-weight: 600; text-align: center; border: 1px solid transparent;
         }
 
-        /* --- PAINEL DE PERSONALIZAÇÃO (ABAIXO) --- */
+        .btn-custom-trigger {
+            margin-top: auto; padding: 18px; background: #111; color: white; border-radius: 15px;
+            cursor: pointer; text-align: center; font-weight: bold; font-size: 14px;
+        }
+
+        /* --- PAINEL INFERIOR --- */
         #dragPanel { 
-            position: fixed; bottom: -150px; left: 0; width: 100%; background: #111; 
-            color: white; padding: 25px; display: flex; gap: 15px; 
+            position: fixed; bottom: -200px; left: 0; width: 100%; background: #111; 
+            color: white; padding: 30px; display: flex; gap: 15px; 
             justify-content: center; z-index: 3000; align-items: center;
-            transition: 0.5s ease; border-radius: 25px 25px 0 0;
+            transition: 0.6s cubic-bezier(0.19, 1, 0.22, 1); border-radius: 30px 30px 0 0;
         }
         #dragPanel.visible { bottom: 0; }
         
         .drag-box { 
-            padding: 12px 20px; background: #333; border-radius: 12px; cursor: pointer; 
-            font-weight: bold; border: 1px solid #444; transition: 0.2s;
-            user-select: none;
+            padding: 15px 25px; background: #222; border-radius: 12px; cursor: grab; 
+            font-weight: bold; border: 1px solid #333; transition: 0.2s;
         }
-        .drag-box:hover { background: #444; border-color: var(--primary); }
+        .drag-box:hover { background: #333; transform: translateY(-5px); border-color: var(--primary); }
 
-        /* --- ÁREAS DE CONTEÚDO --- */
-        main { padding: 80px 20px; height: 100vh; overflow-y: auto; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        /* --- CONTEÚDO --- */
+        main { padding: 80px 20px; height: 100vh; overflow-y: auto; width: 100%; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
 
-        /* VÍDEOS */
-        .video-card { background: white; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); }
-        .v-thumb { width: 100%; aspect-ratio: 16/9; background: #000; }
-        .v-thumb video { width: 100%; height: 100%; object-fit: cover; }
-        
         /* CHAT */
-        #chatView { height: 75vh; display: flex; flex-direction: column; background: white; border-radius: 20px; border: 1px solid var(--border); overflow: hidden; }
-        #messages { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 12px 16px; border-radius: 18px; max-width: 70%; font-size: 14px; }
-        .msg.mine { align-self: flex-end; background: var(--primary); color: white; }
-        .msg.other { align-self: flex-start; background: #eee; }
+        #chatContainer { height: 75vh; display: flex; flex-direction: column; background: white; border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
+        #msgBox { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .m { padding: 12px 18px; border-radius: 20px; max-width: 75%; font-size: 15px; line-height: 1.4; }
+        .m.me { align-self: flex-end; background: var(--primary); color: white; }
+        .m.he { align-self: flex-start; background: #eee; }
 
         /* BOTÕES */
-        .btn { padding: 12px 24px; border-radius: 30px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
+        .btn { padding: 14px 24px; border-radius: 30px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 15px; }
+        .btn-primary { background: var(--primary); color: white; width: 100%; }
+        .btn-google { background: white; border: 1px solid #ddd; width: 100%; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; }
 
-        .overlay-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; z-index: 1500; }
+        .overlay-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; z-index: 1500; }
         .overlay-bg.active { display: block; }
     </style>
 </head>
 <body>
 
-    <div id="authOverlay">
-        <h1 style="font-size: 50px; letter-spacing: -2px;">RESP</h1>
-        <button class="btn btn-primary" onclick="login()" style="margin-top:20px; width:250px;">Entrar com Google</button>
-    </div>
-
-    <div id="setupOverlay">
+    <div id="authScreen" class="full-overlay">
         <div class="card">
-            <h2>Crie seu Nick</h2>
-            <input type="text" id="nickIn" placeholder="Ex: Arthur_01" style="width:100%; padding:15px; border-radius:10px; border:1px solid #ddd; margin: 20px 0;">
-            <button class="btn btn-primary" style="width:100%;" onclick="salvarNick()">Começar</button>
+            <h1 style="font-size: 50px; letter-spacing: -3px; margin-bottom: 10px;">RESP</h1>
+            <p style="margin-bottom: 30px; color: #666;">Entre ou crie sua conta modular.</p>
+            
+            <button class="btn btn-google" onclick="authGoogle()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Google
+            </button>
+
+            <div style="margin-bottom: 20px; color: #aaa; font-size: 12px; display: flex; align-items: center; gap: 10px;">
+                <hr style="flex-grow:1; border:0; border-top:1px solid #eee;"> OU E-MAIL <hr style="flex-grow:1; border:0; border-top:1px solid #eee;">
+            </div>
+
+            <div id="emailForm">
+                <input type="email" id="logEmail" placeholder="E-mail" style="margin-bottom:10px;">
+                <input type="password" id="logPass" placeholder="Senha" style="margin-bottom:10px;">
+                <button class="btn btn-primary" onclick="authEmail()">Entrar / Cadastrar</button>
+                <p style="font-size: 11px; color: #999; margin-top: 15px;">Se o e-mail não existir, criaremos uma conta nova para você.</p>
+            </div>
         </div>
     </div>
 
-    <div id="settingsModal">
+    <div id="setupScreen" class="full-overlay hidden">
         <div class="card">
-            <h2>Configurações ⚙️</h2>
-            <div style="margin-top:30px; border-top:1px solid #eee; padding-top:20px;">
-                <button class="btn btn-danger" style="width:100%;" onclick="logout()">Sair da Conta</button>
-                <button class="btn" style="color:red; background:none; margin-top:10px;" onclick="deletarConta()">Excluir Tudo</button>
-            </div>
-            <button class="btn" onclick="fecharConfigs()" style="margin-top:20px;">Fechar</button>
+            <h2>Configuração Inicial</h2>
+            <p style="margin: 10px 0 25px; color: #666;">Como quer ser chamado na rede?</p>
+            <input type="text" id="setupNick" placeholder="@seu_nickname" style="margin-bottom: 20px;">
+            <button class="btn btn-primary" onclick="finalizarSetup()">Salvar e Entrar</button>
+        </div>
+    </div>
+
+    <div id="settingsScreen" class="full-overlay hidden">
+        <div class="card">
+            <h2>Configurações</h2>
+            <button class="btn btn-danger" style="margin-top:30px; width:100%;" onclick="sair()">Sair da Conta</button>
+            <button class="btn" style="margin-top:10px; width:100%; background:#eee;" onclick="toggleConfigs()">Voltar</button>
         </div>
     </div>
 
     <header>
         <button onclick="toggleSidebar()" style="background:none; border:none; font-size:28px; cursor:pointer;">☰</button>
-        <h3 id="logoNick">RESP</h3>
-        <button onclick="abrirConfigs()" style="background:none; border:none; font-size:24px; cursor:pointer;">⚙️</button>
+        <h2 id="userNickHeader">RESP</h2>
+        <button onclick="toggleConfigs()" style="background:none; border:none; font-size:24px; cursor:pointer;">⚙️</button>
     </header>
 
     <div class="overlay-bg" id="blur" onclick="toggleSidebar()"></div>
 
     <aside class="sidebar" id="sidebar">
-        <p style="font-size:10px; color:#aaa; font-weight:bold; letter-spacing:1px; margin-bottom:15px;">SEU MENU</p>
+        <p style="font-size:10px; color:#aaa; font-weight:bold; margin-bottom:20px; letter-spacing:1px;">MENUS ATIVOS</p>
         
         <ul id="moduleList"></ul>
 
-        <div class="btn-open-custom" onclick="abrirPainelPersonalizacao()">
-            <span>≡</span> Personalizar Barra
+        <div class="btn-custom-trigger" onclick="abrirCustom()">
+            🛠️ PERSONALIZAR BARRA
         </div>
     </aside>
 
     <main>
-        <div id="tab-Inicio">
-            <h1 id="welcome">Olá!</h1>
-            <p>Sua rede personalizada está pronta.</p>
+        <div id="view-Inicio">
+            <h1>Bem-vindo!</h1>
+            <p>Seu espaço modular está pronto. Adicione ferramentas na barra lateral.</p>
         </div>
 
-        <div id="tab-Vídeos" style="display:none;">
+        <div id="view-Vídeos" class="hidden">
             <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
                 <h1>Vídeos</h1>
-                <button class="btn btn-primary" onclick="togglePost()">+ Postar</button>
+                <button class="btn btn-primary" style="width:auto;" onclick="document.getElementById('postArea').classList.toggle('hidden')">+ Novo</button>
             </div>
-            <div id="vForm" style="display:none; background:white; padding:20px; border-radius:15px; margin-bottom:20px; border:1px solid #ddd; flex-direction:column; gap:10px;">
-                <input type="text" id="vTitle" placeholder="Título" style="padding:10px; border-radius:8px; border:1px solid #ccc;">
-                <input type="file" id="vFile" accept="video/*">
-                <button class="btn btn-primary" id="upBtn" onclick="postarVideo()">Enviar</button>
+            <div id="postArea" class="hidden" style="background:white; padding:20px; border-radius:15px; margin-bottom:20px; border:1px solid #ddd; display:flex; flex-direction:column; gap:10px;">
+                <input type="text" id="vT" placeholder="Título">
+                <input type="file" id="vF" accept="video/*">
+                <button class="btn btn-primary" id="vB" onclick="uploadV()">Publicar</button>
             </div>
-            <div class="grid" id="videoGrid"></div>
+            <div class="grid" id="vGrid"></div>
         </div>
 
-        <div id="tab-Chat" style="display:none;">
+        <div id="view-Chat" class="hidden">
             <h1>Chat Global</h1>
-            <div id="chatView">
-                <div id="messages"></div>
+            <div id="chatContainer">
+                <div id="msgBox"></div>
                 <div style="padding:15px; display:flex; border-top:1px solid #eee;">
-                    <input type="text" id="chatIn" placeholder="Escreva aqui..." style="flex-grow:1; padding:12px; border-radius:25px; border:1px solid #ddd; margin-right:10px; outline:none;">
-                    <button class="btn btn-primary" onclick="enviarMsg()">Enviar</button>
+                    <input type="text" id="chatIn" placeholder="Digite aqui..." style="flex-grow:1; margin-right:10px;">
+                    <button class="btn btn-primary" style="width:auto" onclick="mandarMsg()">Enviar</button>
                 </div>
             </div>
         </div>
     </main>
 
     <div id="dragPanel">
-        <span style="font-weight:bold; color:#777; margin-right:10px;">CLIQUE OU ARRASTE:</span>
-        <div class="drag-box" draggable="true" ondragstart="startDrag(event)" onclick="addModDirect('Vídeos')">Vídeos</div>
-        <div class="drag-box" draggable="true" ondragstart="startDrag(event)" onclick="addModDirect('Chat')">Chat</div>
-        <div class="drag-box" draggable="true" ondragstart="startDrag(event)" onclick="addModDirect('Loja')">Loja</div>
-        <div class="drag-box" draggable="true" ondragstart="startDrag(event)" onclick="addModDirect('Explorar')">Explorar</div>
-        <button onclick="fecharPainel()" style="background:white; color:black; border:none; padding:8px 15px; border-radius:15px; font-weight:bold; cursor:pointer;">Pronto</button>
+        <span style="font-weight:bold; color:#555;">ARRASTE OU CLIQUE:</span>
+        <div class="drag-box" draggable="true" ondragstart="startDrag(event)" onclick="addModulo('Vídeos')">Vídeos</div>
+        <div class="drag-box" draggable="true" ondragstart="startDrag(event)" onclick="addModulo('Chat')">Chat</div>
+        <div class="drag-box" draggable="true" ondragstart="startDrag(event)" onclick="addModulo('Loja')">Loja</div>
+        <div class="drag-box" draggable="true" ondragstart="startDrag(event)" onclick="addModulo('Explorar')">Explorar</div>
+        <button onclick="fecharCustom()" style="background:white; color:black; border:none; padding:10px 20px; border-radius:20px; font-weight:bold; cursor:pointer;">Fechar</button>
     </div>
 
     <script>
+        // CONFIGURAÇÕES FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyAvZl2jk8i8n0e9844cxw6mGdCWXB6CZ_w",
             authDomain: "resp-f1.firebaseapp.com",
@@ -212,168 +221,179 @@
         const db = firebase.firestore();
         const storage = firebase.storage();
 
-        let myData = { nick: '', modules: ['Início'] };
+        let uData = { nick: '', modules: ['Início'] };
 
-        // --- AUTH ---
-        async function login() {
+        // --- SISTEMA DE LOGIN ---
+        async function authGoogle() {
             await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
         }
-        function logout() { auth.signOut().then(() => location.reload()); }
 
+        async function authEmail() {
+            const email = document.getElementById('logEmail').value;
+            const pass = document.getElementById('logPass').value;
+            if(!email || !pass) return alert("Preencha e-mail e senha.");
+            
+            try {
+                // Tenta logar, se falhar tenta criar
+                await auth.signInWithEmailAndPassword(email, pass);
+            } catch (e) {
+                if (e.code === 'auth/user-not-found') {
+                    await auth.createUserWithEmailAndPassword(email, pass);
+                } else { alert(e.message); }
+            }
+        }
+
+        function sair() { auth.signOut().then(() => location.reload()); }
+
+        // MONITOR DE USUÁRIO (O CÉREBRO)
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                document.getElementById('authOverlay').style.display = 'none';
+                document.getElementById('authScreen').classList.add('hidden');
                 const doc = await db.collection("users").doc(user.uid).get();
+                
                 if (doc.exists()) {
-                    myData = doc.data();
-                    renderUI();
+                    uData = doc.data();
+                    if(!uData.nick) {
+                        document.getElementById('setupScreen').classList.remove('hidden');
+                    } else {
+                        document.getElementById('setupScreen').classList.add('hidden');
+                        renderAll();
+                    }
                 } else {
-                    document.getElementById('setupOverlay').style.display = 'flex';
+                    // Novo usuário total
+                    document.getElementById('setupScreen').classList.remove('hidden');
                 }
             } else {
-                document.getElementById('authOverlay').style.display = 'flex';
+                document.getElementById('authScreen').classList.remove('hidden');
             }
         });
 
-        async function salvarNick() {
-            const nick = document.getElementById('nickIn').value;
-            if(!nick) return;
-            myData = { nick: nick, modules: ['Início'] };
-            await db.collection("users").doc(auth.currentUser.uid).set(myData);
-            document.getElementById('setupOverlay').style.display = 'none';
-            renderUI();
+        async function finalizarSetup() {
+            const nick = document.getElementById('setupNick').value.trim();
+            if(!nick) return alert("Nickname é obrigatório!");
+            
+            uData = { nick: nick, modules: ['Início'] };
+            await db.collection("users").doc(auth.currentUser.uid).set(uData);
+            document.getElementById('setupScreen').classList.add('hidden');
+            renderAll();
         }
 
-        // --- RENDER ---
-        function renderUI() {
-            document.getElementById('logoNick').innerText = myData.nick;
-            document.getElementById('welcome').innerText = "Olá, " + myData.nick + "!";
+        // --- RENDERIZAÇÃO DA UI ---
+        function renderAll() {
+            document.getElementById('userNickHeader').innerText = "@" + uData.nick;
             const list = document.getElementById('moduleList');
             list.innerHTML = "";
-            myData.modules.forEach(m => {
+            
+            uData.modules.forEach(m => {
                 const li = document.createElement('li');
                 li.className = "module-item";
                 li.innerText = m;
-                li.onclick = () => showTab(m);
+                li.onclick = () => mudarAba(m);
                 list.appendChild(li);
             });
         }
 
-        function showTab(name) {
-            ['Inicio', 'Vídeos', 'Chat'].forEach(t => {
-                const el = document.getElementById('tab-'+t);
-                if(el) el.style.display = (t === name) ? 'block' : 'none';
+        function mudarAba(nome) {
+            ['Inicio', 'Vídeos', 'Chat'].forEach(a => {
+                const view = document.getElementById('view-'+a);
+                if(view) view.classList.add('hidden');
             });
-            if(name === 'Vídeos') loadVideos();
-            if(name === 'Chat') loadChat();
+            const alvo = document.getElementById('view-'+nome);
+            if(alvo) alvo.classList.remove('hidden');
+            
+            if(nome === 'Vídeos') loadV();
+            if(nome === 'Chat') loadC();
             if(window.innerWidth < 1000) toggleSidebar();
         }
 
-        // --- SISTEMA DE PERSONALIZAÇÃO (DUPLA FUNÇÃO) ---
-        
-        // 1. Função de Clicar e Já Aparecer
-        async function addModDirect(name) {
-            if(!myData.modules.includes(name)) {
-                myData.modules.push(name);
-                await db.collection("users").doc(auth.currentUser.uid).update({ modules: myData.modules });
-                renderUI();
+        // --- SISTEMA DE PERSONALIZAÇÃO (CLICK & DRAG) ---
+        async function addModulo(nome) {
+            if(!uData.modules.includes(nome)) {
+                uData.modules.push(nome);
+                // Força o salvamento e a atualização visual
+                await db.collection("users").doc(auth.currentUser.uid).update({
+                    modules: uData.modules
+                });
+                renderAll(); // Atualiza a barra lateral na hora
             }
         }
 
-        // 2. Função de Arrastar (Drag & Drop)
         function startDrag(e) {
-            e.dataTransfer.setData("modName", e.target.innerText);
+            e.dataTransfer.setData("mod", e.target.innerText);
         }
 
-        const dropArea = document.getElementById('moduleList');
-        dropArea.ondragover = (e) => { e.preventDefault(); dropArea.classList.add('drag-over'); };
-        dropArea.ondragleave = () => dropArea.classList.remove('drag-over');
-        dropArea.ondrop = async (e) => {
+        const dropZone = document.getElementById('moduleList');
+        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); };
+        dropZone.ondragleave = () => dropZone.classList.remove('drag-over');
+        dropZone.ondrop = async (e) => {
             e.preventDefault();
-            dropArea.classList.remove('drag-over');
-            const name = e.dataTransfer.getData("modName");
-            addModDirect(name);
+            dropZone.classList.remove('drag-over');
+            const mod = e.dataTransfer.getData("mod");
+            if(mod) addModulo(mod);
         };
 
-        // --- VÍDEOS ---
-        function togglePost() {
-            const f = document.getElementById('vForm');
-            f.style.display = (f.style.display === 'flex') ? 'none' : 'flex';
-        }
-
-        async function postarVideo() {
-            const file = document.getElementById('vFile').files[0];
-            const title = document.getElementById('vTitle').value;
-            if(!file || !title) return;
-            document.getElementById('upBtn').innerText = "...";
-            
-            const ref = storage.ref(`videos/${Date.now()}_${file.name}`);
-            await ref.put(file);
+        // --- FUNCIONALIDADES (CHAT / VIDEO) ---
+        async function uploadV() {
+            const f = document.getElementById('vF').files[0];
+            const t = document.getElementById('vT').value;
+            if(!f || !t) return;
+            document.getElementById('vB').innerText = "...";
+            const ref = storage.ref(`v/${Date.now()}_${f.name}`);
+            await ref.put(f);
             const url = await ref.getDownloadURL();
-            
             await db.collection("videos").add({
-                title: title, url: url, author: myData.nick, time: firebase.firestore.FieldValue.serverTimestamp()
+                t, url, author: uData.nick, time: firebase.firestore.FieldValue.serverTimestamp()
             });
             location.reload();
         }
 
-        function loadVideos() {
-            const grid = document.getElementById('videoGrid');
-            db.collection("videos").orderBy("time", "desc").onSnapshot(snap => {
-                grid.innerHTML = "";
-                snap.forEach(doc => {
-                    const v = doc.data();
-                    grid.innerHTML += `<div class="video-card"><div class="v-thumb"><video src="${v.url}#t=0.5" controls></video></div><div style="padding:15px"><b>${v.title}</b><br><small>@${v.author}</small></div></div>`;
+        function loadV() {
+            const g = document.getElementById('vGrid');
+            db.collection("videos").orderBy("time", "desc").onSnapshot(s => {
+                g.innerHTML = "";
+                s.forEach(d => {
+                    const v = d.data();
+                    g.innerHTML += `<div class="video-card"><div class="v-thumb"><video src="${v.url}#t=0.5" controls></video></div><div style="padding:15px"><b>${v.t}</b><br><small>@${v.author}</small></div></div>`;
                 });
             });
         }
 
-        // --- CHAT ---
-        function loadChat() {
-            const box = document.getElementById('messages');
-            db.collection("chat").orderBy("time", "asc").limit(50).onSnapshot(snap => {
-                box.innerHTML = "";
-                snap.forEach(doc => {
-                    const m = doc.data();
-                    const cl = m.nick === myData.nick ? 'mine' : 'other';
-                    box.innerHTML += `<div class="msg ${cl}"><b>${m.nick}</b><br>${m.text}</div>`;
+        function loadC() {
+            const b = document.getElementById('msgBox');
+            db.collection("chat").orderBy("time", "asc").limit(50).onSnapshot(s => {
+                b.innerHTML = "";
+                s.forEach(d => {
+                    const m = d.data();
+                    const c = m.nick === uData.nick ? 'me' : 'he';
+                    b.innerHTML += `<div class="m ${c}"><b>${m.nick}</b><br>${m.text}</div>`;
                 });
-                box.scrollTop = box.scrollHeight;
+                b.scrollTop = b.scrollHeight;
             });
         }
 
-        async function enviarMsg() {
-            const input = document.getElementById('chatIn');
-            if(!input.value) return;
+        async function mandarMsg() {
+            const i = document.getElementById('chatIn');
+            if(!i.value) return;
             await db.collection("chat").add({
-                text: input.value, nick: myData.nick, time: firebase.firestore.FieldValue.serverTimestamp()
+                text: i.value, nick: uData.nick, time: firebase.firestore.FieldValue.serverTimestamp()
             });
-            input.value = "";
+            i.value = "";
         }
 
-        // --- INTERFACE ---
+        // --- INTERFACE UTILS ---
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('blur').classList.toggle('active');
         }
-        function abrirConfigs() { document.getElementById('settingsModal').style.display = 'flex'; }
-        function fecharConfigs() { document.getElementById('settingsModal').style.display = 'none'; }
-        
-        function abrirPainelPersonalizacao() {
+        function abrirCustom() {
             document.getElementById('dragPanel').classList.add('visible');
-            // Mantém a sidebar aberta para facilitar o arraste
             document.getElementById('sidebar').classList.add('active');
         }
-        function fecharPainel() {
+        function fecharCustom() {
             document.getElementById('dragPanel').classList.remove('visible');
-            toggleSidebar();
         }
-
-        async function deletarConta() {
-            if(confirm("Apagar tudo?")) {
-                await db.collection("users").doc(auth.currentUser.uid).delete();
-                auth.currentUser.delete().then(() => location.reload());
-            }
+        function toggleConfigs() {
+            document.getElementById('settingsScreen').classList.toggle('hidden');
         }
     </script>
 </body>
