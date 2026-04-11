@@ -6,13 +6,11 @@
     <title>Resp — Rede Social</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase Compat SDK (v10.14.1) -->
+    <!-- Firebase Compat SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
-    <!-- SortableJS para Drag & Drop na sidebar -->
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500&amp;display=swap');
         
@@ -32,11 +30,6 @@
             max-height: 420px;
         }
         
-        .chat-scroll {
-            scrollbar-width: thin;
-            scrollbar-color: #065fd4 #1f2937;
-        }
-        
         .sidebar-module {
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -50,7 +43,7 @@
                 <div class="inline-flex items-center gap-2 text-4xl font-bold logo-font tracking-tighter text-white">
                     <span class="text-[#065fd4]">R</span>esp
                 </div>
-                <p class="text-white/70 mt-2">Sua rede social de vídeos em tempo real</p>
+                <p class="text-white/70 mt-2">Sua rede social de vídeos</p>
             </div>
 
             <!-- Login com Google -->
@@ -108,14 +101,14 @@
                 <button onclick="hideRegister()" class="w-full mt-3 text-white/70 hover:text-white">Voltar</button>
             </div>
 
-            <p class="text-center text-white/40 text-xs mt-8">Ao continuar, você concorda com nossos <span class="text-[#065fd4]">Termos</span> e <span class="text-[#065fd4]">Privacidade</span></p>
+            <p class="text-center text-white/40 text-xs mt-8">Ao continuar, você concorda com nossos Termos e Privacidade</p>
         </div>
     </div>
 
-    <!-- MAIN APP (após login) -->
+    <!-- MAIN APP -->
     <div id="main-app" class="hidden min-h-screen flex">
         
-        <!-- SIDEBAR -->
+        <!-- SIDEBAR (agora só com Início) -->
         <div id="sidebar" class="w-72 bg-gray-900 border-r border-white/10 flex flex-col transition-all duration-300">
             
             <!-- Logo + Header -->
@@ -128,23 +121,16 @@
                 </button>
             </div>
 
-            <!-- Módulos personalizáveis (Drag & Drop) -->
-            <div class="flex-1 px-3 py-6 overflow-y-auto" id="sidebar-modules">
-                <div id="modules-list" class="space-y-1">
-                    <!-- Populados via JS -->
+            <!-- Apenas o módulo Início (sem drag & drop por enquanto) -->
+            <div class="flex-1 px-3 py-6">
+                <div onclick="navigateTo('feed')" id="module-inicio"
+                     class="sidebar-module flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/10 cursor-pointer">
+                    <span class="text-2xl">🏠</span>
+                    <span class="font-medium">Início</span>
                 </div>
             </div>
 
-            <!-- Botão Adicionar módulo -->
-            <div class="px-6 pb-6">
-                <button onclick="showAddModuleModal()" 
-                        class="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white py-3 rounded-2xl font-medium">
-                    <span class="text-2xl leading-none">+</span>
-                    <span>Adicionar módulo</span>
-                </button>
-            </div>
-
-            <!-- User info no rodapé da sidebar -->
+            <!-- User info no rodapé -->
             <div onclick="showProfileMenu()" class="px-6 py-4 border-t border-white/10 flex items-center gap-3 cursor-pointer hover:bg-white/10">
                 <img id="sidebar-avatar" src="https://picsum.photos/id/64/40/40" alt="Avatar" class="w-9 h-9 rounded-2xl object-cover">
                 <div class="flex-1 min-w-0">
@@ -155,7 +141,7 @@
             </div>
         </div>
 
-        <!-- MOBILE HAMBURGER (aparece só em mobile) -->
+        <!-- MOBILE HAMBURGER -->
         <div onclick="toggleMobileSidebar()" class="lg:hidden fixed top-4 left-4 z-50 bg-[#065fd4] text-white w-10 h-10 flex items-center justify-center rounded-2xl shadow-xl">
             <span id="hamburger-icon" class="text-3xl">☰</span>
         </div>
@@ -170,21 +156,20 @@
                 <div class="flex-1 max-w-xl">
                     <div onclick="focusSearch()" class="bg-white/10 hover:bg-white/20 flex items-center gap-3 px-5 h-11 rounded-3xl text-white/70 cursor-text">
                         <span class="text-xl">🔎</span>
-                        <input id="search-input" type="text" placeholder="Buscar vídeos, usuários ou #tags" 
+                        <input id="search-input" type="text" placeholder="Buscar vídeos ou @nicknames" 
                                class="flex-1 bg-transparent outline-none text-sm placeholder:text-white/40">
                     </div>
                 </div>
 
-                <!-- Ações da topbar -->
+                <!-- Ações -->
                 <div class="flex items-center gap-5">
-                    
                     <!-- Notificações -->
                     <div onclick="showNotifications()" class="relative cursor-pointer">
                         <span class="text-3xl">🛎️</span>
-                        <span id="notification-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">3</span>
+                        <span id="notification-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">0</span>
                     </div>
 
-                    <!-- Upload rápido -->
+                    <!-- Upload -->
                     <button onclick="showUploadModal()" 
                             class="flex items-center gap-2 bg-[#065fd4] hover:bg-[#054aa8] px-6 h-10 rounded-3xl font-semibold text-sm">
                         <span class="text-xl leading-none">+</span>
@@ -198,14 +183,14 @@
                 </div>
             </div>
 
-            <!-- CONTEÚDO DINÂMICO -->
+            <!-- CONTEÚDO (sempre começa com Feed) -->
             <div class="flex-1 overflow-auto p-6" id="main-content">
-                <!-- Será preenchido dinamicamente via JS -->
+                <!-- Feed será carregado aqui -->
             </div>
         </div>
     </div>
 
-    <!-- MODAIS -->
+    <!-- MODAIS (mantidos os essenciais) -->
     
     <!-- Modal Upload de Vídeo -->
     <div id="upload-modal" onclick="if(event.target.id==='upload-modal')hideUploadModal()" 
@@ -240,12 +225,12 @@
         </div>
     </div>
 
-    <!-- Modal Nickname (após primeiro login) -->
+    <!-- Modal Nickname -->
     <div id="nickname-modal" onclick="if(event.target.id==='nickname-modal'){}" 
          class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[10000]">
         <div class="bg-white/10 backdrop-blur-2xl rounded-3xl p-8 max-w-sm w-full mx-4">
             <h3 class="text-2xl font-semibold mb-2">Escolha seu @nickname</h3>
-            <p class="text-white/60 mb-6">Ele deve ser único e só pode conter letras, números e underline.</p>
+            <p class="text-white/60 mb-6">Único e obrigatório</p>
             
             <div class="relative">
                 <span class="absolute left-5 top-4 text-white/40">@</span>
@@ -253,10 +238,10 @@
                        class="w-full bg-white/10 border border-white/30 focus:border-[#065fd4] rounded-2xl pl-9 py-4 text-xl">
             </div>
             
-            <p id="nickname-error" class="text-red-400 text-sm mt-2 hidden">Nickname já está em uso ou inválido.</p>
+            <p id="nickname-error" class="text-red-400 text-sm mt-2 hidden"></p>
             
             <button onclick="saveNickname()" 
-                    class="mt-8 w-full bg-[#065fd4] py-5 rounded-2xl font-semibold text-lg">Confirmar nickname</button>
+                    class="mt-8 w-full bg-[#065fd4] py-5 rounded-2xl font-semibold text-lg">Confirmar</button>
         </div>
     </div>
 
@@ -268,40 +253,13 @@
                 <h3 class="font-semibold">Notificações</h3>
                 <span onclick="hideNotifications()" class="cursor-pointer text-2xl">✕</span>
             </div>
-            <div id="notifications-list" class="max-h-96 overflow-auto">
-                <!-- JS populated -->
+            <div id="notifications-list" class="max-h-96 overflow-auto p-2">
+                <!-- JS -->
             </div>
         </div>
     </div>
 
-    <!-- Modal Chat Global -->
-    <div onclick="if(event.target.id==='chat-global-modal')hideChatModal()" id="chat-global-modal"
-         class="hidden fixed inset-0 bg-black/70 z-[9999] flex items-end lg:items-center justify-center">
-        <div onclick="event.stopImmediatePropagation()" class="bg-gray-900 rounded-t-3xl lg:rounded-3xl w-full max-w-2xl h-[85vh] lg:h-[80vh] flex flex-col">
-            <div class="px-6 py-4 border-b flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="text-3xl">🌍</span>
-                    <h3 class="font-semibold text-xl">Chat Global</h3>
-                </div>
-                <button onclick="hideChatModal()" class="text-3xl">✕</button>
-            </div>
-            
-            <!-- Mensagens -->
-            <div id="global-chat-messages" class="flex-1 p-6 overflow-y-auto chat-scroll space-y-6">
-                <!-- Populado em tempo real via Firestore -->
-            </div>
-            
-            <!-- Input -->
-            <div class="p-4 border-t border-white/10 flex gap-3">
-                <input id="global-chat-input" type="text" placeholder="Digite uma mensagem..." 
-                       class="flex-1 bg-white/10 rounded-3xl px-6 py-3 outline-none text-sm"
-                       onkeydown="if(event.key==='Enter') sendGlobalMessage()">
-                <button onclick="sendGlobalMessage()" class="w-12 h-12 bg-[#065fd4] rounded-3xl flex items-center justify-center text-2xl">↑</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Menu de perfil flutuante -->
+    <!-- Menu de perfil -->
     <div onclick="if(event.target.id==='profile-menu')hideProfileMenu()" id="profile-menu"
          class="hidden fixed top-16 right-8 bg-gray-900 rounded-3xl shadow-2xl py-2 w-64 z-[10000] border border-white/10">
         <div class="px-4 py-3 border-b border-white/10 flex items-center gap-3">
@@ -313,23 +271,12 @@
         </div>
         <a onclick="logout()" class="flex items-center gap-3 px-6 py-4 hover:bg-white/10 text-red-400 cursor-pointer">
             <span class="text-xl">🚪</span>
-            <span>Sair da conta</span>
+            <span>Sair</span>
         </a>
     </div>
 
-    <!-- Modal Adicionar Módulo -->
-    <div id="add-module-modal" onclick="if(event.target.id==='add-module-modal')hideAddModuleModal()" 
-         class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[9999]">
-        <div class="bg-gray-900 rounded-3xl p-6 max-w-xs w-full">
-            <h3 class="text-lg font-semibold mb-4">Adicionar ao sidebar</h3>
-            <div id="available-modules" class="grid grid-cols-2 gap-3">
-                <!-- JS populated -->
-            </div>
-        </div>
-    </div>
-
     <script>
-        // ==================== CONFIGURAÇÃO FIREBASE (OBRIGATÓRIA) ====================
+        // ==================== FIREBASE CONFIG ====================
         const firebaseConfig = {
             apiKey: "AIzaSyAvZl2jk8i8n0e9844cxw6mGdCWXB6CZ_w",
             authDomain: "resp-f1.firebaseapp.com",
@@ -339,7 +286,6 @@
             appId: "1:616016136217:web:ec3642b797375ce0134288"
         };
 
-        // Inicializa Firebase
         let app, auth, db, storage;
         function initializeFirebase() {
             if (!app) {
@@ -347,48 +293,20 @@
                 auth = firebase.auth();
                 db = firebase.firestore();
                 storage = firebase.storage();
-                console.log('%c✅ Firebase inicializado com sucesso (credenciais fornecidas)', 'color:#065fd4;font-weight:bold');
+                console.log('%c✅ Firebase inicializado', 'color:#065fd4;font-weight:bold');
             }
         }
 
         // ==================== VARIÁVEIS GLOBAIS ====================
         let currentUser = null;
         let currentNickname = null;
-        let modulesOrder = ['feed', 'explore', 'chat-global', 'dm', 'store'];
         let currentPage = 'feed';
-        let unsubscribeListeners = [];
 
         // ==================== TAILWIND + DARK MODE ====================
-        function initTailwind() {
-            return {
-                config(userConfig = {}) {
-                    return {
-                        configUser: userConfig,
-                        theme: {
-                            extend: {
-                                colors: {
-                                    primary: '#065fd4'
-                                }
-                            }
-                        },
-                        darkMode: 'class'
-                    }
-                },
-                theme: {
-                    extend: {}
-                }
-            }
-        }
-
         function toggleDarkMode() {
             const isDark = document.documentElement.classList.contains('dark');
-            if (isDark) {
-                document.documentElement.classList.remove('dark');
-                document.getElementById('dark-mode-icon').innerHTML = '🌙';
-            } else {
-                document.documentElement.classList.add('dark');
-                document.getElementById('dark-mode-icon').innerHTML = '☀️';
-            }
+            document.documentElement.classList.toggle('dark', !isDark);
+            document.getElementById('dark-mode-icon').innerHTML = isDark ? '☀️' : '🌙';
         }
 
         // ==================== AUTENTICAÇÃO ====================
@@ -398,83 +316,68 @@
             try {
                 const result = await auth.signInWithPopup(provider);
                 await handleFirstLogin(result.user);
-            } catch (error) {
-                console.error("Google login error:", error);
-                alert("Erro ao fazer login com Google: " + error.message);
-            }
+            } catch (e) { alert("Erro Google: " + e.message); }
         }
 
         async function handleEmailLogin() {
             initializeFirebase();
             const email = document.getElementById('email-input').value.trim();
             const password = document.getElementById('password-input').value;
-            if (!email || !password) return alert("Preencha e-mail e senha");
-            
+            if (!email || !password) return alert("Preencha todos os campos");
             try {
                 const result = await auth.signInWithEmailAndPassword(email, password);
                 await handleFirstLogin(result.user);
-            } catch (error) {
-                alert("Erro no login: " + error.message);
-            }
+            } catch (e) { alert("Erro login: " + e.message); }
         }
 
         async function handleEmailRegister() {
             initializeFirebase();
             const email = document.getElementById('register-email').value.trim();
             const password = document.getElementById('register-password').value;
-            if (!email || password.length < 6) return alert("Senha deve ter pelo menos 6 caracteres");
-            
+            if (!email || password.length < 6) return alert("Senha mínima de 6 caracteres");
             try {
                 const result = await auth.createUserWithEmailAndPassword(email, password);
                 await handleFirstLogin(result.user);
-            } catch (error) {
-                alert("Erro no cadastro: " + error.message);
-            }
+            } catch (e) { alert("Erro cadastro: " + e.message); }
         }
 
         async function handleFirstLogin(user) {
             currentUser = user;
-            // Verifica se o usuário já tem documento no Firestore
             const userRef = db.collection('users').doc(user.uid);
             const doc = await userRef.get();
             
             if (!doc.exists) {
-                // Primeiro acesso → pedir nickname
                 document.getElementById('nickname-modal').classList.remove('hidden');
-                document.getElementById('nickname-input').focus();
                 return;
             }
             
-            // Já tem conta
             currentNickname = doc.data().nickname;
             finishLogin();
         }
 
         async function saveNickname() {
-            const nicknameInput = document.getElementById('nickname-input').value.trim().toLowerCase();
-            if (!nicknameInput || !/^[a-z0-9_]{3,20}$/.test(nicknameInput)) {
-                showNicknameError("Nickname inválido. Use apenas letras minúsculas, números e _ (3-20 caracteres)");
+            const nickname = document.getElementById('nickname-input').value.trim().toLowerCase();
+            if (!nickname || !/^[a-z0-9_]{3,20}$/.test(nickname)) {
+                showNicknameError("Use apenas letras minúsculas, números e _ (3-20 caracteres)");
                 return;
             }
             
-            // Validar unicidade
-            const snapshot = await db.collection('users').where('nickname', '==', nicknameInput).get();
+            const snapshot = await db.collection('users').where('nickname', '==', nickname).get();
             if (!snapshot.empty) {
-                showNicknameError("Esse @nickname já está em uso");
+                showNicknameError("Esse nickname já está em uso");
                 return;
             }
             
-            // Salvar
             await db.collection('users').doc(currentUser.uid).set({
                 uid: currentUser.uid,
                 email: currentUser.email,
-                nickname: nicknameInput,
-                displayName: currentUser.displayName || nicknameInput,
+                nickname: nickname,
+                displayName: currentUser.displayName || nickname,
                 photoURL: currentUser.photoURL || `https://picsum.photos/id/${Math.floor(Math.random()*100)}/128/128`,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             
-            currentNickname = nicknameInput;
+            currentNickname = nickname;
             document.getElementById('nickname-modal').classList.add('hidden');
             finishLogin();
         }
@@ -483,506 +386,246 @@
             const el = document.getElementById('nickname-error');
             el.textContent = msg;
             el.classList.remove('hidden');
-            setTimeout(() => el.classList.add('hidden'), 4000);
+            setTimeout(() => el.classList.add('hidden'), 3500);
         }
 
         function finishLogin() {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
             
-            // Atualiza UI com dados do usuário
+            // Atualiza dados do usuário
             document.getElementById('sidebar-name').textContent = currentUser.displayName || currentNickname;
             document.getElementById('sidebar-nickname').textContent = `@${currentNickname}`;
-            document.getElementById('topbar-avatar').src = currentUser.photoURL || `https://picsum.photos/id/64/32/32`;
-            document.getElementById('sidebar-avatar').src = currentUser.photoURL || `https://picsum.photos/id/64/40/40`;
-            document.getElementById('menu-avatar').src = currentUser.photoURL || `https://picsum.photos/id/64/48/48`;
+            document.getElementById('topbar-avatar').src = currentUser.photoURL || 'https://picsum.photos/id/64/32/32';
+            document.getElementById('sidebar-avatar').src = currentUser.photoURL || 'https://picsum.photos/id/64/40/40';
+            document.getElementById('menu-avatar').src = currentUser.photoURL || 'https://picsum.photos/id/64/48/48';
             document.getElementById('menu-name').textContent = currentUser.displayName || currentNickname;
             document.getElementById('menu-nickname').textContent = `@${currentNickname}`;
             
-            loadModules();
-            navigateTo('feed');
-            
-            // Inicia listeners de realtime
+            navigateTo('feed');           // ← Começa SOMENTE com Início
             startRealtimeListeners();
         }
 
         function logout() {
             hideProfileMenu();
-            auth.signOut().then(() => {
-                location.reload();
-            });
+            auth.signOut().then(() => location.reload());
         }
 
-        // ==================== SIDEBAR DRAG & DROP + PERSONALIZAÇÃO ====================
-        const defaultModules = {
-            feed: { icon: '🏠', label: 'Início' },
-            explore: { icon: '🔎', label: 'Explorar' },
-            'chat-global': { icon: '🌍', label: 'Chat Global' },
-            dm: { icon: '💬', label: 'Mensagens' },
-            store: { icon: '🛒', label: 'Loja' }
-        };
-
-        function loadModules() {
-            const container = document.getElementById('modules-list');
-            container.innerHTML = '';
-            
-            // Carrega ordem salva ou default
-            const savedOrder = JSON.parse(localStorage.getItem('modulesOrder')) || modulesOrder;
-            
-            savedOrder.forEach(key => {
-                if (!defaultModules[key]) return;
-                const mod = defaultModules[key];
-                const div = document.createElement('div');
-                div.className = `sidebar-module flex items-center gap-3 px-4 py-3 rounded-2xl cursor-pointer hover:bg-white/10 ${currentPage === key ? 'bg-white/10' : ''}`;
-                div.innerHTML = `
-                    <span class="text-2xl">${mod.icon}</span>
-                    <span class="font-medium">${mod.label}</span>
-                `;
-                div.onclick = () => navigateTo(key);
-                container.appendChild(div);
-            });
-            
-            // Ativa SortableJS
-            new Sortable(container, {
-                animation: 150,
-                onEnd: function () {
-                    const newOrder = Array.from(container.children).map(el => {
-                        // Extrai a key a partir do texto (simples)
-                        const text = el.textContent.trim();
-                        return Object.keys(defaultModules).find(k => defaultModules[k].label === text) || 'feed';
-                    });
-                    modulesOrder = newOrder;
-                    localStorage.setItem('modulesOrder', JSON.stringify(newOrder));
-                }
-            });
-        }
-
-        function showAddModuleModal() {
-            const modal = document.getElementById('add-module-modal');
-            const container = document.getElementById('available-modules');
-            container.innerHTML = '';
-            
-            Object.keys(defaultModules).forEach(key => {
-                if (modulesOrder.includes(key)) return;
-                const mod = defaultModules[key];
-                const btn = document.createElement('button');
-                btn.className = "flex flex-col items-center gap-2 bg-white/10 hover:bg-white/20 rounded-2xl py-6 px-4 text-center";
-                btn.innerHTML = `<span class="text-4xl">${mod.icon}</span><span class="font-medium">${mod.label}</span>`;
-                btn.onclick = () => {
-                    modulesOrder.push(key);
-                    localStorage.setItem('modulesOrder', JSON.stringify(modulesOrder));
-                    hideAddModuleModal();
-                    loadModules();
-                };
-                container.appendChild(btn);
-            });
-            
-            modal.classList.remove('hidden');
-        }
-
-        function hideAddModuleModal() {
-            document.getElementById('add-module-modal').classList.add('hidden');
-        }
-
-        function toggleMobileSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar.style.transform === 'translateX(-100%)') {
-                sidebar.style.transform = 'translateX(0)';
-                document.getElementById('hamburger-icon').innerHTML = '✕';
-            } else {
-                sidebar.style.transform = 'translateX(-100%)';
-                document.getElementById('hamburger-icon').innerHTML = '☰';
-            }
-        }
-
-        // ==================== NAVEGAÇÃO ====================
+        // ==================== NAVEGAÇÃO (agora só Feed) ====================
         function navigateTo(page) {
-            currentPage = page;
-            loadModules(); // atualiza highlight
-            
-            const content = document.getElementById('main-content');
-            content.innerHTML = '';
-            
-            if (page === 'feed') renderFeed();
-            else if (page === 'explore') renderExplore();
-            else if (page === 'chat-global') {
-                content.innerHTML = `<div onclick="showChatGlobal()" class="h-full flex flex-col items-center justify-center text-center cursor-pointer">
-                    <div class="text-8xl mb-6">🌍</div>
-                    <h2 class="text-3xl font-semibold mb-2">Chat Global</h2>
-                    <p class="text-white/60 max-w-xs">Converse com a comunidade inteira em tempo real</p>
-                    <button class="mt-10 bg-[#065fd4] px-10 py-4 rounded-3xl text-lg font-semibold">Entrar no chat</button>
-                </div>`;
-            }
-            else if (page === 'dm') renderDMs();
-            else if (page === 'store') renderStore();
+            if (page !== 'feed') return; // bloqueia outras páginas por enquanto
+            currentPage = 'feed';
+            renderFeed();
         }
 
-        // ==================== FEED ====================
+        // ==================== FEED (Início) ====================
         async function renderFeed() {
             const content = document.getElementById('main-content');
             content.innerHTML = `
-            <h1 class="text-3xl font-semibold mb-8 flex items-center gap-3">
-                <span>🏠</span> Feed
-            </h1>
-            <div id="feed-container" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-                <!-- Vídeos carregados via Firestore -->
-            </div>`;
-            
+                <div class="max-w-5xl mx-auto">
+                    <h1 class="text-3xl font-semibold mb-8 flex items-center gap-3">
+                        <span>🏠</span> Início
+                    </h1>
+                    <div id="feed-container" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                        <!-- Vídeos carregados aqui -->
+                    </div>
+                </div>`;
+
             const container = document.getElementById('feed-container');
             
             try {
                 const snapshot = await db.collection('videos').orderBy('createdAt', 'desc').limit(12).get();
+                
                 if (snapshot.empty) {
-                    container.innerHTML = `<div class="col-span-full text-center py-20 text-white/60">Nenhum vídeo ainda. Seja o primeiro a fazer upload!</div>`;
+                    container.innerHTML = `<div class="col-span-full text-center py-20 text-white/60">Nenhum vídeo ainda.<br>Seja o primeiro a fazer upload!</div>`;
                     return;
                 }
                 
                 snapshot.forEach(doc => {
-                    const video = doc.data();
-                    const cardHTML = `
-                    <div class="bg-white/5 rounded-3xl overflow-hidden border border-white/10">
+                    const v = doc.data();
+                    const card = document.createElement('div');
+                    card.className = "bg-white/5 rounded-3xl overflow-hidden border border-white/10";
+                    card.innerHTML = `
                         <div class="relative">
-                            <video class="w-full aspect-video object-cover" controls src="${video.url || ''}"></video>
-                            <div class="absolute top-3 left-3 bg-black/60 text-xs px-3 py-1 rounded-3xl flex items-center">
-                                ❤️ ${video.likes || 0}
+                            <video class="w-full aspect-video object-cover" controls src="${v.url}"></video>
+                            <div class="absolute top-3 right-3 bg-black/70 text-xs px-3 py-1 rounded-3xl flex items-center gap-1">
+                                ❤️ <span>${v.likes || 0}</span>
                             </div>
                         </div>
                         <div class="p-4 flex gap-3">
-                            <img src="${video.authorPhoto || 'https://picsum.photos/id/64/40/40'}" class="w-9 h-9 rounded-2xl">
+                            <img src="${v.authorPhoto || 'https://picsum.photos/id/64/40/40'}" class="w-9 h-9 rounded-2xl">
                             <div class="flex-1">
-                                <div class="flex justify-between">
+                                <div class="flex justify-between items-start">
                                     <div>
-                                        <p class="font-semibold">${video.authorName || 'Usuário'}</p>
-                                        <p class="text-xs text-white/50">@${video.authorNickname || 'user'}</p>
+                                        <p class="font-semibold">${v.authorName}</p>
+                                        <p class="text-xs text-white/50">@${v.authorNickname}</p>
                                     </div>
-                                    <button onclick="likeVideo('${doc.id}')" class="text-xl">❤️</button>
+                                    <button onclick="likeVideo('${doc.id}'); event.stopImmediatePropagation();" class="text-2xl hover:scale-110 transition">❤️</button>
                                 </div>
-                                <p class="text-sm mt-2 line-clamp-2">${video.caption || 'Sem legenda'}</p>
+                                <p class="mt-2 text-sm">${v.caption || ''}</p>
                             </div>
-                        </div>
-                    </div>`;
-                    container.innerHTML += cardHTML;
+                        </div>`;
+                    container.appendChild(card);
                 });
             } catch (e) {
-                console.error(e);
-                container.innerHTML = `<div class="text-red-400">Erro ao carregar feed. Verifique as regras do Firestore.</div>`;
+                container.innerHTML = `<div class="col-span-full text-red-400 text-center py-12">Erro ao carregar feed.<br>Verifique as regras do Firestore.</div>`;
             }
         }
 
-        async function likeVideo(videoId) {
+        async function likeVideo(id) {
             if (!currentUser) return;
-            const ref = db.collection('videos').doc(videoId);
-            await ref.update({
+            await db.collection('videos').doc(id).update({
                 likes: firebase.firestore.FieldValue.increment(1)
             });
-            renderFeed(); // refresh simples
+            renderFeed();
         }
 
-        // ==================== UPLOAD DE VÍDEO ====================
+        // ==================== UPLOAD ====================
         let selectedFile = null;
-        
+
         function showUploadModal() {
             selectedFile = null;
             document.getElementById('upload-modal').classList.remove('hidden');
             document.getElementById('upload-progress-container').classList.add('hidden');
-            document.getElementById('file-name').textContent = '';
+            document.getElementById('file-name').innerHTML = '';
         }
-        
+
         function hideUploadModal() {
             document.getElementById('upload-modal').classList.add('hidden');
         }
-        
+
         function handleVideoSelect(e) {
             selectedFile = e.target.files[0];
-            if (selectedFile && selectedFile.type === 'video/mp4') {
-                document.getElementById('file-name').innerHTML = `<span class="text-emerald-400">✅ ${selectedFile.name}</span>`;
+            if (selectedFile?.type === 'video/mp4') {
+                document.getElementById('file-name').innerHTML = `✅ <span class="text-emerald-400">${selectedFile.name}</span>`;
                 document.getElementById('upload-confirm-btn').disabled = false;
             } else {
-                alert("Apenas arquivos .mp4 são permitidos");
+                alert("Só é permitido arquivo MP4");
                 selectedFile = null;
             }
         }
-        
+
         async function startVideoUpload() {
             if (!selectedFile || !currentUser) return;
             
             const progressContainer = document.getElementById('upload-progress-container');
             progressContainer.classList.remove('hidden');
             
-            const fileName = `videos/${currentUser.uid}_${Date.now()}_${selectedFile.name}`;
-            const storageRef = storage.ref(fileName);
-            
-            const uploadTask = storageRef.put(selectedFile);
+            const fileRef = storage.ref(`videos/${currentUser.uid}_${Date.now()}_${selectedFile.name}`);
+            const uploadTask = fileRef.put(selectedFile);
             
             uploadTask.on('state_changed', 
-                (snapshot) => {
-                    const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-                    document.getElementById('progress-bar').style.width = `${progress}%`;
-                    document.getElementById('progress-percent').textContent = `${progress}%`;
+                (snap) => {
+                    const percent = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+                    document.getElementById('progress-bar').style.width = percent + '%';
+                    document.getElementById('progress-percent').textContent = percent + '%';
                 },
-                (error) => {
-                    alert("Erro no upload: " + error.message);
-                    hideUploadModal();
-                },
+                (err) => { alert("Erro no upload: " + err.message); hideUploadModal(); },
                 async () => {
-                    const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
-                    
-                    // Salva metadados no Firestore
+                    const url = await uploadTask.snapshot.ref.getDownloadURL();
                     await db.collection('videos').add({
-                        url: downloadURL,
+                        url: url,
                         authorId: currentUser.uid,
                         authorName: currentUser.displayName || currentNickname,
                         authorNickname: currentNickname,
                         authorPhoto: currentUser.photoURL,
-                        caption: "Vídeo enviado agora!",
+                        caption: "Vídeo novo no Resp 🔥",
                         likes: 0,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
-                    
                     hideUploadModal();
-                    alert("✅ Vídeo enviado com sucesso! Atualizando feed...");
-                    if (currentPage === 'feed') renderFeed();
+                    alert("✅ Vídeo enviado com sucesso!");
+                    renderFeed();
                 }
             );
-        }
-
-        // ==================== CHAT GLOBAL (Realtime) ====================
-        function showChatGlobal() {
-            document.getElementById('chat-global-modal').classList.remove('hidden');
-            renderGlobalChat();
-        }
-        
-        function hideChatModal() {
-            document.getElementById('chat-global-modal').classList.add('hidden');
-            // Limpa listeners
-            unsubscribeListeners.forEach(unsub => unsub());
-            unsubscribeListeners = [];
-        }
-        
-        function renderGlobalChat() {
-            const container = document.getElementById('global-chat-messages');
-            container.innerHTML = `<div class="text-center py-8 text-white/40">Carregando mensagens...</div>`;
-            
-            const unsub = db.collection('chat')
-                .orderBy('timestamp', 'asc')
-                .limit(50)
-                .onSnapshot(snapshot => {
-                    container.innerHTML = '';
-                    snapshot.forEach(doc => {
-                        const msg = doc.data();
-                        const isMine = msg.uid === currentUser.uid;
-                        
-                        const bubble = document.createElement('div');
-                        bubble.className = `flex ${isMine ? 'justify-end' : 'justify-start'}`;
-                        bubble.innerHTML = `
-                        <div class="${isMine ? 'bg-[#065fd4]' : 'bg-white/10'} max-w-[70%] rounded-3xl px-5 py-3">
-                            <p class="text-xs opacity-70">${msg.nickname}</p>
-                            <p>${msg.text}</p>
-                        </div>`;
-                        container.appendChild(bubble);
-                    });
-                    container.scrollTop = container.scrollHeight;
-                });
-            
-            unsubscribeListeners.push(unsub);
-        }
-        
-        async function sendGlobalMessage() {
-            const input = document.getElementById('global-chat-input');
-            const text = input.value.trim();
-            if (!text || !currentUser) return;
-            
-            await db.collection('chat').add({
-                uid: currentUser.uid,
-                nickname: currentNickname,
-                text: text,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            
-            input.value = '';
-        }
-
-        // ==================== MENSAGENS PRIVADAS (DM) ====================
-        function renderDMs() {
-            const content = document.getElementById('main-content');
-            content.innerHTML = `
-            <h1 class="text-3xl font-semibold mb-6">Mensagens Privadas</h1>
-            <div class="bg-white/5 rounded-3xl p-8 text-center">
-                <p class="text-5xl mb-4">💌</p>
-                <h3 class="text-xl">Busque um @nickname para iniciar uma conversa privada</h3>
-                <div class="mt-8 flex justify-center">
-                    <input id="dm-search" type="text" placeholder="@nickname" 
-                           class="bg-white/10 rounded-3xl px-6 py-4 w-80 text-center outline-none">
-                </div>
-                <button onclick="searchUserForDM()" class="mt-6 px-12 py-4 bg-[#065fd4] rounded-3xl font-semibold">Buscar usuário</button>
-                <div id="dm-results" class="mt-8"></div>
-            </div>`;
-        }
-        
-        async function searchUserForDM() {
-            const query = document.getElementById('dm-search').value.trim().replace('@','');
-            if (!query) return;
-            
-            const resultsDiv = document.getElementById('dm-results');
-            resultsDiv.innerHTML = `<p class="text-white/60">Buscando...</p>`;
-            
-            const snapshot = await db.collection('users').where('nickname', '==', query).limit(1).get();
-            
-            if (snapshot.empty) {
-                resultsDiv.innerHTML = `<p class="text-red-400">Nenhum usuário encontrado com esse nickname.</p>`;
-                return;
-            }
-            
-            const user = snapshot.docs[0].data();
-            resultsDiv.innerHTML = `
-            <div class="flex justify-between items-center bg-white/10 rounded-3xl p-4">
-                <div class="flex items-center gap-4">
-                    <img src="${user.photoURL}" class="w-12 h-12 rounded-2xl">
-                    <div>
-                        <p class="font-semibold">${user.displayName}</p>
-                        <p class="text-xs">@${user.nickname}</p>
-                    </div>
-                </div>
-                <button onclick="sendDMRequest('${snapshot.docs[0].id}')" class="px-8 py-3 bg-[#065fd4] rounded-3xl text-sm font-semibold">Enviar solicitação</button>
-            </div>`;
-        }
-        
-        async function sendDMRequest(targetUid) {
-            // Simula envio de solicitação (salva em notifications)
-            await db.collection('notifications').add({
-                to: targetUid,
-                from: currentUser.uid,
-                fromNickname: currentNickname,
-                type: 'dm_request',
-                read: false,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            alert("✅ Solicitação de conversa enviada!");
         }
 
         // ==================== NOTIFICAÇÕES ====================
         function showNotifications() {
             const modal = document.getElementById('notifications-modal');
             const list = document.getElementById('notifications-list');
-            list.innerHTML = `<div class="p-6 text-center text-white/40">Carregando notificações...</div>`;
+            list.innerHTML = `<div class="p-8 text-center text-white/50">Nenhuma notificação ainda</div>`;
             modal.classList.remove('hidden');
             
-            // Busca notificações (simples)
-            db.collection('notifications').where('to', '==', currentUser.uid).orderBy('timestamp', 'desc').limit(8).get().then(snapshot => {
-                list.innerHTML = '';
-                if (snapshot.empty) {
-                    list.innerHTML = `<div class="p-10 text-center text-white/40">Nenhuma notificação ainda</div>`;
-                    return;
-                }
-                snapshot.forEach(doc => {
-                    const n = doc.data();
-                    const item = document.createElement('div');
-                    item.className = 'px-6 py-5 border-b border-white/10 flex justify-between items-center';
-                    item.innerHTML = `<div><span class="text-[#065fd4]">@${n.fromNickname}</span> ${n.type === 'dm_request' ? 'quer conversar com você' : 'interagiu com seu conteúdo'}</div>`;
-                    list.appendChild(item);
-                });
-            });
+            // Busca real (pode ser expandido depois)
+            db.collection('notifications')
+              .where('to', '==', currentUser.uid)
+              .orderBy('timestamp', 'desc')
+              .limit(10)
+              .get()
+              .then(snap => {
+                  if (snap.empty) return;
+                  list.innerHTML = '';
+                  snap.forEach(doc => {
+                      const n = doc.data();
+                      const div = document.createElement('div');
+                      div.className = 'px-6 py-5 border-b border-white/10';
+                      div.innerHTML = `<span class="text-[#065fd4]">@${n.fromNickname || 'alguém'}</span> ${n.type === 'dm_request' ? 'quer conversar' : 'curtiu seu vídeo'}`;
+                      list.appendChild(div);
+                  });
+              });
         }
-        
+
         function hideNotifications() {
             document.getElementById('notifications-modal').classList.add('hidden');
         }
 
-        // ==================== EXPLORAR ====================
-        function renderExplore() {
-            const content = document.getElementById('main-content');
-            content.innerHTML = `
-            <h1 class="text-3xl font-semibold mb-8">Explorar</h1>
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                ${Array(8).fill(0).map((_, i) => `
-                <div class="bg-white/5 aspect-video rounded-3xl flex items-center justify-center text-7xl cursor-pointer hover:scale-105 transition-transform">🎬</div>
-                `).join('')}
-            </div>`;
-        }
-
-        // ==================== LOJA (LAYOUT INICIAL) ====================
-        function renderStore() {
-            const content = document.getElementById('main-content');
-            content.innerHTML = `
-            <div class="max-w-5xl mx-auto">
-                <h1 class="text-4xl font-semibold mb-2">Loja Resp</h1>
-                <p class="text-white/60 mb-8">Itens exclusivos, NFTs e produtos da comunidade</p>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
-                    <div class="bg-gradient-to-br from-purple-500/10 to-[#065fd4]/10 rounded-3xl p-6 text-center">
-                        <div class="text-6xl mb-4">👕</div>
-                        <h4 class="font-semibold">Camiseta Resp</h4>
-                        <p class="text-xs text-white/60">R$ 89,90</p>
-                        <button onclick="alert('🛍️ Checkout simulado! (sem pagamento real)')" class="mt-6 w-full py-3 bg-white text-gray-900 rounded-2xl text-sm font-semibold">Comprar</button>
-                    </div>
-                    <!-- Mais cards mock -->
-                    ${Array(5).fill('<div class="bg-white/5 rounded-3xl p-6 text-center text-white/40">Produto em breve</div>').join('')}
-                </div>
-            </div>`;
-        }
-
-        // ==================== LISTENERS REALTIME GERAIS ====================
+        // ==================== REALTIME ====================
         function startRealtimeListeners() {
-            // Notificações em tempo real (contador)
-            const unsubNotif = db.collection('notifications')
-                .where('to', '==', currentUser.uid)
-                .where('read', '==', false)
-                .onSnapshot(snap => {
-                    document.getElementById('notification-count').textContent = snap.size || '';
-                });
-            unsubscribeListeners.push(unsubNotif);
-            
-            console.log('%c✅ Listeners realtime iniciados', 'color:#065fd4');
+            // Contador de notificações
+            db.collection('notifications')
+              .where('to', '==', currentUser.uid)
+              .where('read', '==', false)
+              .onSnapshot(snap => {
+                  document.getElementById('notification-count').textContent = snap.size || '';
+              });
         }
 
-        // ==================== INICIALIZAÇÃO DO APP ====================
+        // ==================== AUXILIARES ====================
         function showProfileMenu() {
             document.getElementById('profile-menu').classList.toggle('hidden');
         }
-        
         function hideProfileMenu() {
             document.getElementById('profile-menu').classList.add('hidden');
         }
-        
         function showRegister() {
             document.getElementById('email-form').classList.add('hidden');
             document.getElementById('register-form').classList.remove('hidden');
         }
-        
         function hideRegister() {
             document.getElementById('register-form').classList.add('hidden');
             document.getElementById('email-form').classList.remove('hidden');
         }
-        
         function focusSearch() {
             document.getElementById('search-input').focus();
         }
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.style.transform = sidebar.style.transform === 'translateX(-100%)' ? 'translateX(0)' : 'translateX(-100%)';
+            document.getElementById('hamburger-icon').innerHTML = sidebar.style.transform === 'translateX(0)' ? '✕' : '☰';
+        }
 
-        // Boot da aplicação
-        window.onload = function() {
+        // ==================== INICIALIZAÇÃO ====================
+        window.onload = () => {
             initializeFirebase();
             
-            // Verifica se já está logado (refresh)
             auth.onAuthStateChanged(user => {
                 if (user) {
                     currentUser = user;
-                    // Verifica nickname
                     db.collection('users').doc(user.uid).get().then(doc => {
                         if (doc.exists) {
                             currentNickname = doc.data().nickname;
                             finishLogin();
                         } else {
-                            // Precisa do nickname
                             document.getElementById('login-screen').classList.remove('hidden');
                         }
                     });
                 } else {
-                    // Mostra tela de login
                     document.getElementById('login-screen').classList.remove('hidden');
                 }
             });
             
-            console.log('%c🚀 Aplicação Resp carregada com sucesso em um único HTML!', 'background:#065fd4;color:#fff;padding:2px 6px;border-radius:4px;font-weight:bold');
-            console.log('📋 Regras do Firestore já configuradas no código. Cole-as no console do Firebase.');
+            console.log('%c🚀 Resp iniciado — SOMENTE com o módulo Início', 'background:#065fd4;color:white;padding:2px 8px;border-radius:4px');
         };
     </script>
 </body>
