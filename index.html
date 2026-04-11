@@ -21,13 +21,8 @@
         .chat-bubble { max-width: 75%; padding: 14px 20px; border-radius: 25px; }
         .message-img { max-width: 100%; border-radius: 18px; margin-top: 8px; }
         
-        .chat-container { 
-            height: calc(100vh - 220px); 
-            overflow-y: auto; 
-            scroll-behavior: smooth; 
-        }
+        .chat-container { height: calc(100vh - 220px); overflow-y: auto; scroll-behavior: smooth; }
         
-        /* Responsividade Mobile */
         @media (max-width: 768px) {
             .sidebar { 
                 position: fixed; 
@@ -63,8 +58,7 @@
                 <p class="text-white/70 mt-2">Sua rede, do seu jeito</p>
             </div>
             
-            <button onclick="handleGoogleLogin()" 
-                    class="w-full flex items-center justify-center gap-3 bg-white text-gray-900 hover:bg-gray-100 py-4 rounded-2xl font-semibold text-lg transition-all mb-4">
+            <button onclick="handleGoogleLogin()" class="w-full flex items-center justify-center gap-3 bg-white text-gray-900 hover:bg-gray-100 py-4 rounded-2xl font-semibold text-lg transition-all mb-4">
                 Entrar com Google
             </button>
             
@@ -74,16 +68,13 @@
                 <div class="flex-1 h-px bg-white/30"></div>
             </div>
             
-            <input id="email-input" type="email" placeholder="Seu e-mail" 
-                   class="w-full bg-white/10 border border-white/30 focus:border-[#065fd4] rounded-2xl px-5 py-4 mb-3 text-white placeholder:text-white/50">
-            <input id="password-input" type="password" placeholder="Sua senha" 
-                   class="w-full bg-white/10 border border-white/30 focus:border-[#065fd4] rounded-2xl px-5 py-4 mb-6 text-white placeholder:text-white/50">
+            <input id="email-input" type="email" placeholder="Seu e-mail" class="w-full bg-white/10 border border-white/30 focus:border-[#065fd4] rounded-2xl px-5 py-4 mb-3 text-white placeholder:text-white/50">
+            <input id="password-input" type="password" placeholder="Sua senha" class="w-full bg-white/10 border border-white/30 focus:border-[#065fd4] rounded-2xl px-5 py-4 mb-6 text-white placeholder:text-white/50">
             
-            <button onclick="handleEmailLogin()" 
-                    class="w-full bg-[#065fd4] hover:bg-[#054aa8] py-4 rounded-2xl font-semibold text-lg">Entrar com E-mail</button>
+            <button onclick="handleEmailLogin()" class="w-full bg-[#065fd4] hover:bg-[#054aa8] py-4 rounded-2xl font-semibold text-lg">Entrar com E-mail</button>
             
             <div class="text-center mt-6">
-                <a href="#" onclick="showRegister()" class="text-[#065fd4] hover:underline">Criar conta</a>
+                <a href="#" onclick="showRegister()" class="text-[#065fd4] hover:underline">Criar conta nova</a>
             </div>
         </div>
     </div>
@@ -93,8 +84,7 @@
         <div class="bg-white/10 backdrop-blur-2xl rounded-3xl p-8 max-w-sm w-full mx-4 text-center">
             <h2 class="text-3xl font-semibold mb-2">Último passo!</h2>
             <p class="text-white/70 mb-8">Escolha seu nickname único</p>
-            <input id="nickname-input" type="text" maxlength="20" 
-                   class="w-full bg-white/10 border border-white/30 focus:border-[#065fd4] rounded-2xl px-5 py-4 text-xl text-center" placeholder="@seu_nick">
+            <input id="nickname-input" type="text" maxlength="20" class="w-full bg-white/10 border border-white/30 focus:border-[#065fd4] rounded-2xl px-5 py-4 text-xl text-center" placeholder="@seu_nick">
             <p id="nickname-error" class="text-red-400 text-sm mt-4 hidden"></p>
             <button onclick="saveNickname()" class="mt-8 w-full bg-[#065fd4] py-5 rounded-2xl font-semibold text-lg">Confirmar e entrar</button>
         </div>
@@ -102,7 +92,6 @@
 
     <!-- MAIN APP -->
     <div id="main-app" class="hidden min-h-screen flex">
-        <!-- Overlay Mobile -->
         <div id="overlay" onclick="toggleMobileSidebar()" class="overlay"></div>
 
         <!-- SIDEBAR -->
@@ -149,7 +138,7 @@
     </div>
 
     <script>
-        // ==================== FIREBASE CONFIG (para GitHub Pages) ====================
+        // ==================== FIREBASE ====================
         const firebaseConfig = {
             apiKey: "AIzaSyAvZl2jk8i8n0e9844cxw6mGdCWXB6CZ_w",
             authDomain: "resp-f1.firebaseapp.com",
@@ -190,10 +179,7 @@
             try {
                 const result = await auth.signInWithPopup(provider);
                 await handleUserLogin(result.user);
-            } catch (e) {
-                console.error(e);
-                alert("Erro no Google: " + e.message);
-            }
+            } catch (e) { alert("Erro no Google: " + e.message); }
         }
 
         async function handleEmailLogin() {
@@ -204,9 +190,7 @@
             try {
                 const result = await auth.signInWithEmailAndPassword(email, password);
                 await handleUserLogin(result.user);
-            } catch (e) {
-                alert("Erro no login: " + e.message);
-            }
+            } catch (e) { alert("Erro no login: " + e.message); }
         }
 
         async function handleUserLogin(user) {
@@ -249,6 +233,15 @@
             navigateTo('home');
         }
 
+        // ==================== LOGOUT ====================
+        function logout() {
+            if (auth) {
+                auth.signOut().then(() => {
+                    location.reload();
+                });
+            }
+        }
+
         // ==================== SIDEBAR ====================
         function loadModules() {
             const container = document.getElementById('sidebar-modules');
@@ -268,7 +261,7 @@
         }
 
         function showAddModuleModal() {
-            alert("Adicionar módulo será implementado em breve.");
+            alert("Adicionar módulo será implementado na próxima atualização.");
         }
 
         function toggleMobileSidebar() {
@@ -301,8 +294,7 @@
                     <h2 class="text-3xl font-semibold mb-4">Chat Global</h2>
                     <div id="chat-messages" class="chat-container bg-white/5 rounded-3xl p-6 flex-1 overflow-y-auto"></div>
                     <div class="mt-4 bg-white/5 p-4 rounded-3xl flex gap-3">
-                        <input id="chat-input" type="text" placeholder="Digite sua mensagem..." 
-                               class="flex-1 bg-white/10 border border-white/30 focus:border-[#065fd4] rounded-3xl px-6 py-4 outline-none">
+                        <input id="chat-input" type="text" placeholder="Digite sua mensagem..." class="flex-1 bg-white/10 border border-white/30 focus:border-[#065fd4] rounded-3xl px-6 py-4 outline-none">
                         <label class="cursor-pointer bg-white/10 hover:bg-white/20 w-12 h-12 rounded-3xl flex items-center justify-center text-2xl">📷
                             <input type="file" id="chat-image-input" accept="image/*" class="hidden" onchange="sendMedia('image')">
                         </label>
@@ -368,7 +360,9 @@
 
         // ==================== OUTRAS FUNÇÕES ====================
         function showProfileMenu() {
-            alert("Menu do perfil em breve");
+            if (confirm("Deseja sair da conta?")) {
+                logout();
+            }
         }
 
         function showNotifications() {
@@ -376,13 +370,18 @@
         }
 
         function showAddModuleModal() {
-            alert("Adicionar módulos em breve");
+            alert("Adicionar módulo em breve");
+        }
+
+        function toggleMobileSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('overlay').classList.toggle('show');
         }
 
         // ==================== INICIALIZAÇÃO ====================
         window.onload = () => {
             initializeFirebase();
-            console.log('%c🚀 RESP V9.0 - Otimizado para GitHub Pages', 'background:#065fd4;color:white;padding:8px;border-radius:8px');
+            console.log('%c🚀 RESP V9.0 - Código completo para GitHub Pages', 'background:#065fd4;color:white;padding:8px;border-radius:8px');
 
             auth.onAuthStateChanged(user => {
                 if (user) {
