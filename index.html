@@ -93,14 +93,14 @@
         <!-- SIDEBAR – Começa SOMENTE com Início -->
         <div id="sidebar" class="w-72 bg-gray-900 border-r border-white/10 flex flex-col transition-all duration-300">
             
-            <div class="px-6 pt-6 pb-4 flex items-center justify-between border-b border-white/10">
-                <div class="flex items-center gap-2 text-3xl font-bold logo-font tracking-tighter">
-                    <span class="text-[#065fd4]">R</span>esp
-                </div>
-                <button onclick="toggleDarkMode()" class="p-2 hover:bg-white/10 rounded-xl">
-                    <span id="dark-mode-icon" class="text-2xl">☀️</span>
-                </button>
-            </div>
+           <div class="px-6 pt-6 pb-4 flex items-center justify-between border-b border-white/10">
+    <div onclick="navigateTo('home')" class="flex items-center gap-2 text-3xl font-bold logo-font tracking-tighter cursor-pointer hover:opacity-80">
+        <span class="text-[#065fd4]">R</span>esp
+    </div>
+    <button onclick="toggleDarkMode()" class="p-2 hover:bg-white/10 rounded-xl">
+        <span id="dark-mode-icon" class="text-2xl">☀️</span>
+    </button>
+</div>
 
             <!-- Lista de módulos (inicia vazia, só com Início) -->
             <div class="flex-1 px-3 py-6 overflow-y-auto" id="sidebar-modules">
@@ -264,12 +264,13 @@
         let modulesOrder = ['feed'];
 
         const defaultModules = {
-            feed: { icon: '🏠', label: 'Início' },
-            explore: { icon: '🔎', label: 'Explorar' },
-            'chat-global': { icon: '🌍', label: 'Chat Global' },
-            dm: { icon: '💬', label: 'Mensagens' },
-            store: { icon: '🛒', label: 'Loja' }
-        };
+    home:   { icon: '🏠', label: 'Início' },
+    videos: { icon: '🎥', label: 'Vídeos' },
+    explore: { icon: '🔎', label: 'Explorar' },
+    'chat-global': { icon: '🌍', label: 'Chat Global' },
+    dm: { icon: '💬', label: 'Mensagens' },
+    store: { icon: '🛒', label: 'Loja' }
+};
 
         // ==================== DARK MODE ====================
         function toggleDarkMode() {
